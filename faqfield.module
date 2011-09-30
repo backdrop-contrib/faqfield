@@ -6,6 +6,27 @@
  */
 
 /**
+ * Implements hook_help().
+ */
+function faqfield_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#faqfield':
+      $output = '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('This module provides a field for frequently asked questions. Added, you can create simple but smooth FAQs on any piece of content.') . '</p>';
+      $output .= '<h3>' . t('Usage') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('Configuration') . '</dt>';
+      $output .= '<dd>' . t("No configuration needed.") . '</dd>';
+      $output .= '<dt>' . t('How to use') . '</dt>';
+      $output .= '<dd>' . t("You can add the field to any entity (eg. content type, users, ..) as usual. After you applied the field you have to configure how its output should be filtered (eg. Filtered HTML, Plain Text). Also it is recommended to set the number of values to unlimited.") . '</dd>';
+      $output .= '<dt>' . t('Formatters') . '</dt>';
+      $output .= '<dd>' . t("You have the choise of two display formatters: jQuery accordion (animated show / hide) and simple text (none formatted, simple output for custom theming). If you are using accordion you can modify its behaviour easily by the display settings.") . '</dd>';
+      $output .= '</dl>';
+      return $output;
+  }
+}
+
+/**
  * Implements hook_field_info().
  *
  * Provides the description of the field.
