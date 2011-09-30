@@ -1,0 +1,3 @@
+name = FAQ Field
+description = Provides a field for frequently asked questions.
+core = 7.x
