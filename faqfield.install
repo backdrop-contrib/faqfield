@@ -1,0 +1,29 @@
+<?php
+/**
+ * @file
+ * Install, update, and uninstall functions of faqfield module.
+ */
+
+/**
+ * Implements hook_field_schema().
+ *
+ * This defines the database schema of the faqfield.
+ */
+function faqfield_field_schema($field) {
+  return array(
+    'columns' => array(
+      'question' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'translatable' => TRUE,
+      ),
+      'answer' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'medium',
+        'translatable' => TRUE,
+      )
+    )
+  );
+}
