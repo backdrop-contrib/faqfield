@@ -122,7 +122,7 @@ function faqfield_field_formatter_settings_form($field, $instance, $view_mode, $
       '#type' => 'textfield',
       '#title' => t('Active'),
       '#default_value' => $settings['active'],
-      '#description' => t('Active element. Leave empty to display none at start.'),
+      '#description' => t('Index of active element. Leave empty to display none at start.'),
       // @TODO _element_validate_number() is deprecated since 7.8.
       // Need (?) to switch to element_validate_number() when most people updated.
       //'#element_validate' => array('element_validate_number'),
@@ -195,12 +195,16 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
   $element = array();
 
   $format = @$field['settings']['format'];
-  $faqfield_id = 'faqfield_' . $field['field_name'];
 
   switch ($display['type']) {
 
     // This formatter adds jQuery accordion widget.
+    // This will not be themeable, because changes would break
+    // jQuery UI accordion functionality!
     case 'faqfield_accordion':
+
+      $faqfield_id = 'faqfield_' . $field['field_name'];
+
       // Add jQuery UI accordion library.
       drupal_add_library('system', 'ui.accordion');
       drupal_add_js('jQuery(function(){jQuery("#' . $faqfield_id . '").accordion(Drupal.settings.' . $faqfield_id . ');});', 'inline');
@@ -225,18 +229,46 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
       $element[0]['#markup'] .= '</div>';
       break;
 
-    // This formatter displays the FAQ content as simple text.
+    // This themeable formatter displays the FAQ content as simple text.
     case 'faqfield_simple_text':
-      $element['#prefix'] = '<div id="' . $faqfield_id . '">';
       foreach ($items as $delta => $item) {
-        $element[$delta]['#markup'] .= '<h3 class="faqfield-question">' . check_markup($item['question'], $format) . '</h3>';
-        $element[$delta]['#markup'] .= '<div class="faqfield-answer">' . check_markup($item['answer'], $format) . '</div>';
+        $element[$delta] = array(
+          '#theme' => 'faqfield_formatter',
+          // Filter values before passing them to the template.
+          '#question' => check_markup($item['question'], $format),
+          '#answer' => check_markup($item['answer'], $format),
+        );
       }
-      $element['#suffix'] .= '</div>';
       break;
 
   }
   return $element;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function faqfield_theme() {
+  // Themeable simple text formatter.
+  return array(
+    'faqfield_formatter' => array(
+      'variables' => array('question' => NULL, 'answer' => NULL),
+    ),
+  );
+}
+
+/**
+ * Returns HTML for a faqfield formatter.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - question
+ *   - answer
+ */
+function theme_faqfield_formatter($variables) {
+  $output = '<h3 class="faqfield-question">' . $variables['question'] . '</h3>';
+  $output .= '<div class="faqfield-answer">' . $variables['answer'] . '</div>';
+  return $output;
 }
 
 /**
