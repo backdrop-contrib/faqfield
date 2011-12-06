@@ -124,8 +124,8 @@ function faqfield_field_formatter_settings_form($field, $instance, $view_mode, $
       '#default_value' => $settings['active'],
       '#description' => t('Index of active element. Leave empty to display none at start.'),
       // @TODO _element_validate_number() is deprecated since 7.8.
-      // Need (?) to switch to element_validate_number() when most people updated.
-      //'#element_validate' => array('element_validate_number'),
+      // Need to switch to element_validate_number() when most people updated.
+      // '#element_validate' => array('element_validate_number'),
       // Currently using fallback functionality:
       '#element_validate' => array(function_exists('element_validate_number') ? 'element_validate_number' : '_element_validate_number'),
       '#maxlength' => 3,
@@ -260,7 +260,7 @@ function faqfield_theme() {
 /**
  * Returns HTML for a faqfield formatter.
  *
- * @param $variables
+ * @param array $variables
  *   An associative array containing:
  *   - question
  *   - answer

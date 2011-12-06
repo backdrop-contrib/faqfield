@@ -23,7 +23,7 @@ function faqfield_field_schema($field) {
         'not null' => TRUE,
         'size' => 'medium',
         'translatable' => TRUE,
-      )
-    )
+      ),
+    ),
   );
 }
