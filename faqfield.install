@@ -24,6 +24,54 @@ function faqfield_field_schema($field) {
         'size' => 'medium',
         'translatable' => TRUE,
       ),
+      'answer_format' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
     ),
   );
+}
+
+/**
+ * Update database tables of the field for formatable text.
+ */
+function faqfield_update_7100() {
+  // Specs of updated database fields.
+  $updated = array(
+    // The new answer format field, holding text formatting informations.
+    'answer_format' => array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+    ),
+  );
+
+  // Get all faqfields.
+  $faqfields = field_read_fields(array(
+    'type' => 'faqfield',
+  ));
+
+  // Iterate through all existing field tables and alter them as needed.
+  foreach ($faqfields as $field) {
+    if (isset($field['storage']['details']['sql'])) {
+      $tables = $field['storage']['details']['sql'];
+
+      // Iterate through current data tables.
+      foreach ($tables['FIELD_LOAD_CURRENT'] as $data_table => $table_fields) {
+        if (! db_field_exists($table, $field['field_name'] . '_answer_format')) {
+          // Add new answer_format field.
+          db_add_field($data_table, $field['field_name'] . '_answer_format', $updated['answer_format']);
+        }
+      }
+      // Iterate through revision data tables.
+      foreach ($tables['FIELD_LOAD_REVISION'] as $data_table => $table_fields) {
+        if (! db_field_exists($data_table, $field['field_name'] . '_answer_format')) {
+          // Add new answer_format field.
+          db_add_field($data_table, $field['field_name'] . '_answer_format', $updated['answer_format']);
+        }
+      }
+
+    }
+  }
 }

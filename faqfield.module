@@ -57,12 +57,22 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
   // Format select input for field settings.
   $form['format'] = array(
     '#type' => 'select',
-    '#title' => t('Text format'),
+    '#title' => t('Default text format'),
     '#default_value' => @$field['settings']['format'],
     '#options' => $options,
     '#access' => count($formats) > 1,
     '#required' => TRUE,
-    '#description' => t('Format to filter FAQ input before it is displayed.'),
+    '#description' => t('Default format to filter FAQ field content.'),
+  );
+
+  // Input for the count of rows for the answer field.
+  $form['answer_widget'] = array(
+    '#type' => 'select',
+    '#title' => t('Answer widget'),
+    '#default_value' => isset($field['settings']['answer_widget']) ? $field['settings']['answer_widget'] : 'textarea',
+    '#options' => array('textarea' => t('Textarea'), 'text_format' => t('Formatable textarea'), 'textfield' => t('Textfield')),
+    '#required' => TRUE,
+    '#description' => t('What form widget to use for answer input. Formatable textarea is needed for WYSIWYG editors.'),
   );
 
   // Input for the count of rows for the answer field.
@@ -73,6 +83,11 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
     '#options' => array(1 => '1', 2 => '2', 3 => '3', 4 => '4', 5 => '5'),
     '#required' => TRUE,
     '#description' => t('Number of rows used for the answer textarea.'),
+    '#states' => array(
+      'invisible' => array(
+        ':input[id="edit-field-settings-answer-widget"]' => array('value' => 'textfield'),
+      ),
+    ),
   );
 
   return $form;
@@ -194,8 +209,6 @@ function faqfield_field_formatter_info() {
 function faqfield_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
 
-  $format = @$field['settings']['format'];
-
   switch ($display['type']) {
 
     // This formatter adds jQuery accordion widget.
@@ -223,6 +236,9 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
       // otherwise this would not work with jQuery accordion.
       $element[0]['#markup'] = '<div id="' . $faqfield_id . '">';
       foreach ($items as $item) {
+        // Decide whether to use the default format or the custom one.
+        $format = isset($item['answer_format']) ? $item['answer_format'] : @$field['settings']['format'];
+        // Build the markup.
         $element[0]['#markup'] .= '<h3 class="faqfield-question"><a href="#">' . check_markup($item['question'], $format) . '</a></h3>';
         $element[0]['#markup'] .= '<div class="faqfield-answer">' . check_markup($item['answer'], $format) . '</div>';
       }
@@ -232,6 +248,9 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
     // This themeable formatter displays the FAQ content as simple text.
     case 'faqfield_simple_text':
       foreach ($items as $delta => $item) {
+        // Decide whether to use the default format or the custom one.
+        $format = isset($item['answer_format']) ? $item['answer_format'] : @$field['settings']['format'];
+        // Add them as page elements, they'll be rendered automatically later.
         $element[$delta] = array(
           '#theme' => 'faqfield_formatter',
           // Filter values before passing them to the template.
@@ -301,15 +320,44 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
       '#weight' => 0,
     ) + $base;
 
-    // Add textfield for answer.
+    // Add textarea / formatable textarea / textfield for answer.
     $element['answer'] = array(
       '#title' => t('Answer'),
-      '#type' => 'textarea',
+      '#type' => isset($field['settings']['answer_widget']) ? $field['settings']['answer_widget'] : 'textarea',
       '#default_value' => isset($items[$delta]['answer']) ? $items[$delta]['answer'] : '',
       '#delta' => $delta,
       '#weight' => 1,
+      '#format' => isset($items[$delta]['answer_format']) ? $items[$delta]['answer_format'] : @$field['settings']['format'],
       '#rows' => @$field['settings']['answer_rows'],
     ) + $base;
+
+    // Add custom element validation handler for handling text format widgets.
+    if (@$field['settings']['answer_widget'] == 'text_format') {
+      $element['answer']['#element_validate'][] = 'faqfield_field_widget_answer_element_validate';
+    }
   }
   return $element;
+}
+
+/**
+ * Validation callback for faqfield widget form.
+ *
+ * Normal textarea's and textfields put their values simply in by
+ * array($name => $value); Unfortunately text_format textareas put
+ * them into an array so also the format gets saved: array($name
+ * => array('value' => $value, 'format' => $format)).
+ * So the API will try to save normal textfields to the 'name' field
+ * and text_format fields to 'answer_value' and 'answer_format'.
+ * To bypass this, we pull the values out of this array and force
+ * them to be saved in 'answer' and 'answer_format'.
+ */
+function faqfield_field_widget_answer_element_validate($element, &$form_state) {
+  foreach ($form_state['values'][$element['#field_name']] as &$lang_values) {
+    foreach ($lang_values as &$values) {
+      if (is_array($values['answer'])) {
+        $values['answer_format'] = $values['answer']['format'];
+        $values['answer'] = $values['answer']['value'];
+      }
+    }
+  }
 }
