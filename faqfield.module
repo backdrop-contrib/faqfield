@@ -158,7 +158,7 @@ function faqfield_field_formatter_settings_form($field, $instance, $view_mode, $
       '#type' => 'checkbox',
       '#title' => t('Collapsible'),
       '#default_value' => $settings['collapsible'],
-      '#description' => t('Whether all the sections can be closed at once. Allows collapsing the active section by the triggering event.'),
+      '#description' => t('Whether an opened question can be collapsed (by the triggering event).'),
     );
     // Name of triggering event.
     $element['event'] = array(
