@@ -256,6 +256,7 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
           // Filter values before passing them to the template.
           '#question' => check_markup($item['question'], $format),
           '#answer' => check_markup($item['answer'], $format),
+          '#delta' => $delta,
         );
       }
       break;
@@ -271,7 +272,7 @@ function faqfield_theme() {
   // Themeable simple text formatter.
   return array(
     'faqfield_formatter' => array(
-      'variables' => array('question' => NULL, 'answer' => NULL),
+      'variables' => array('question' => NULL, 'answer' => NULL, 'delta' => NULL),
     ),
   );
 }
