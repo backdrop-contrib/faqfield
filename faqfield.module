@@ -38,6 +38,12 @@ function faqfield_field_info() {
       'description' => t('Field for frequently asked questions.'),
       'default_widget' => 'faqfield_textboxes',
       'default_formatter' => 'faqfield_accordion',
+      // Set the default field settings.
+      'settings' => array(
+        'format' => 0,
+        'answer_widget' => 'textarea',
+        'answer_rows' => 3,
+      ),
     ),
   );
 }
@@ -51,15 +57,15 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
   // Get a list of formats that the current user has access to.
   $formats = filter_formats();
   foreach ($formats as $format) {
-    $options[$format->format] = $format->name;
+    $format_options[$format->format] = $format->name;
   }
 
   // Format select input for field settings.
   $form['format'] = array(
     '#type' => 'select',
     '#title' => t('Default text format'),
-    '#default_value' => @$field['settings']['format'],
-    '#options' => $options,
+    '#default_value' => $field['settings']['format'],
+    '#options' => $format_options,
     '#access' => count($formats) > 1,
     '#required' => TRUE,
     '#description' => t('Default format to filter FAQ field content.'),
@@ -69,8 +75,12 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
   $form['answer_widget'] = array(
     '#type' => 'select',
     '#title' => t('Answer widget'),
-    '#default_value' => isset($field['settings']['answer_widget']) ? $field['settings']['answer_widget'] : 'textarea',
-    '#options' => array('textarea' => t('Textarea'), 'text_format' => t('Formatable textarea'), 'textfield' => t('Textfield')),
+    '#default_value' => $field['settings']['answer_widget'],
+    '#options' => array(
+      'textarea' => t('Textarea'),
+      'text_format' => t('Formatable textarea'),
+      'textfield' => t('Textfield'),
+    ),
     '#required' => TRUE,
     '#description' => t('What form widget to use for answer input. Formatable textarea is needed for WYSIWYG editors.'),
   );
@@ -79,7 +89,7 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
   $form['answer_rows'] = array(
     '#type' => 'select',
     '#title' => t('Answer rows'),
-    '#default_value' => isset($field['settings']['answer_rows']) ? $field['settings']['answer_rows'] : 3,
+    '#default_value' => $field['settings']['answer_rows'],
     '#options' => array(1 => '1', 2 => '2', 3 => '3', 4 => '4', 5 => '5'),
     '#required' => TRUE,
     '#description' => t('Number of rows used for the answer textarea.'),
@@ -237,7 +247,7 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
       $element[0]['#markup'] = '<div id="' . $faqfield_id . '">';
       foreach ($items as $item) {
         // Decide whether to use the default format or the custom one.
-        $format = isset($item['answer_format']) ? $item['answer_format'] : @$field['settings']['format'];
+        $format = isset($item['answer_format']) ? $item['answer_format'] : $field['settings']['format'];
         // Build the markup.
         $element[0]['#markup'] .= '<h3 class="faqfield-question"><a href="#">' . check_markup($item['question'], $format) . '</a></h3>';
         $element[0]['#markup'] .= '<div class="faqfield-answer">' . check_markup($item['answer'], $format) . '</div>';
@@ -249,7 +259,7 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
     case 'faqfield_simple_text':
       foreach ($items as $delta => $item) {
         // Decide whether to use the default format or the custom one.
-        $format = isset($item['answer_format']) ? $item['answer_format'] : @$field['settings']['format'];
+        $format = isset($item['answer_format']) ? $item['answer_format'] : $field['settings']['format'];
         // Add them as page elements, they'll be rendered automatically later.
         $element[$delta] = array(
           '#theme' => 'faqfield_formatter',
@@ -272,7 +282,11 @@ function faqfield_theme() {
   // Themeable simple text formatter.
   return array(
     'faqfield_formatter' => array(
-      'variables' => array('question' => NULL, 'answer' => NULL, 'delta' => NULL),
+      'variables' => array(
+        'question' => NULL,
+        'answer' => NULL,
+        'delta' => NULL,
+      ),
     ),
   );
 }
@@ -284,6 +298,7 @@ function faqfield_theme() {
  *   An associative array containing:
  *   - question
  *   - answer
+ *   - delta
  */
 function theme_faqfield_formatter($variables) {
   $output = '<h3 class="faqfield-question">' . $variables['question'] . '</h3>';
@@ -298,8 +313,12 @@ function faqfield_field_widget_info() {
   return array(
     // Simple text inputs.
     'faqfield_textboxes' => array(
-      'label' => t('FAQ Field'),
+      'label' => t('Default'),
       'field types' => array('faqfield'),
+      'settings' => array(
+        'question' => '',
+        'answer' => '',
+      )
     ),
   );
 }
@@ -315,7 +334,7 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
     $element['question'] = array(
       '#title' => t('Question'),
       '#type' => 'textfield',
-      '#default_value' => isset($items[$delta]['question']) ? $items[$delta]['question'] : '',
+      '#default_value' => isset($items[$delta]['question']) ? $items[$delta]['question'] : $instance['widget']['settings']['question'],
       '#maxlength' => 255,
       '#delta' => $delta,
       '#weight' => 0,
@@ -324,24 +343,20 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
     // Add textarea / formatable textarea / textfield for answer.
     $element['answer'] = array(
       '#title' => t('Answer'),
-      '#type' => isset($field['settings']['answer_widget']) ? $field['settings']['answer_widget'] : 'textarea',
-      '#default_value' => isset($items[$delta]['answer']) ? $items[$delta]['answer'] : '',
+      '#type' => $field['settings']['answer_widget'],
+      '#default_value' => isset($items[$delta]['answer']) ? $items[$delta]['answer'] : $instance['widget']['settings']['answer'],
       '#delta' => $delta,
       '#weight' => 1,
-      '#format' => isset($items[$delta]['answer_format']) ? $items[$delta]['answer_format'] : @$field['settings']['format'],
-      '#rows' => @$field['settings']['answer_rows'],
+      '#format' => isset($items[$delta]['answer_format']) ? $items[$delta]['answer_format'] : $field['settings']['format'],
+      '#rows' => $field['settings']['answer_rows'],
     ) + $base;
 
-    // Add custom element validation handler for handling text format widgets.
-    if (@$field['settings']['answer_widget'] == 'text_format') {
-      $element['answer']['#element_validate'][] = 'faqfield_field_widget_answer_element_validate';
-    }
   }
   return $element;
 }
 
 /**
- * Validation callback for faqfield widget form.
+ * Prepare formatable textarea values for saving them into the database.
  *
  * Normal textarea's and textfields put their values simply in by
  * array($name => $value); Unfortunately text_format textareas put
@@ -352,13 +367,11 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
  * To bypass this, we pull the values out of this array and force
  * them to be saved in 'answer' and 'answer_format'.
  */
-function faqfield_field_widget_answer_element_validate($element, &$form_state) {
-  foreach ($form_state['values'][$element['#field_name']] as &$lang_values) {
-    foreach ($lang_values as &$values) {
-      if (is_array($values['answer'])) {
-        $values['answer_format'] = $values['answer']['format'];
-        $values['answer'] = $values['answer']['value'];
-      }
+function faqfield_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  if ($field['settings']['answer_widget'] == 'text_format') {
+    foreach ($items as &$values) {
+      $values['answer_format'] = $values['answer']['format'];
+      $values['answer'] = $values['answer']['value'];
     }
   }
 }
