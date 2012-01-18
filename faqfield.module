@@ -318,7 +318,7 @@ function faqfield_field_widget_info() {
       'settings' => array(
         'question' => '',
         'answer' => '',
-      )
+      ),
     ),
   );
 }
