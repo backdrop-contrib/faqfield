@@ -19,9 +19,10 @@ Configuration
 
 Usage
   You can add the field to any entity (eg. content type, users, ..) as usual.
-  After you applied the field you have to configure how its output should be
-  filtered (eg. Filtered HTML, Plain Text). Also it is recommended to set the
-  number of values to unlimited.
+  On the fields settings you can choose what kind of answer input widget should
+  be used and how it should be filtered. If you choose a formatable textarea
+  you can configure the default filter by the default value preview on the field
+  settings page and there are several advanced options you can make use of.
 
   You have the choise of two display formatters:
   - Accordion (jQuery JavaScript animated show / hide) [Default]
