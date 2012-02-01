@@ -416,7 +416,7 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
       '#delta' => $delta,
       '#weight' => 1,
       // We choose the source output format depending on the input type.
-      '#format' => ($field['settings']['answer_widget'] == 'text_format') ? $items[$delta]['answer_format'] : $field['settings']['format'],
+      '#format' => ($field['settings']['answer_widget'] == 'text_format') ? @$items[$delta]['answer_format'] : $field['settings']['format'],
       '#rows' => $field['settings']['advanced']['answer_rows'],
     ) + $base;
   }
