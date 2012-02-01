@@ -55,7 +55,6 @@ function faqfield_field_info() {
       'default_formatter' => 'faqfield_accordion',
       // Set the default field settings.
       'settings' => array(
-        'format' => 0,
         'answer_widget' => 'textarea',
         'advanced' => array(
           'question_length' => 255,
@@ -83,22 +82,10 @@ function faqfield_field_create_field($field) {
 function faqfield_field_settings_form($field, $instance, $has_data) {
   $form = array();
 
-  // Get a list of formats that the current user has access to.
-  $formats = filter_formats();
-  foreach ($formats as $format) {
-    $format_options[$format->format] = $format->name;
+  // @TODO backwards compatibility to beta3. remove soon.
+  if (!isset($field['settings']['advanced']['answer_rows'])) {
+    $field['settings']['advanced']['answer_rows'] = $field['settings']['answer_rows'];
   }
-
-  // Format select input for field settings.
-  $form['format'] = array(
-    '#type' => 'select',
-    '#title' => t('Default text format'),
-    '#default_value' => $field['settings']['format'],
-    '#options' => $format_options,
-    '#access' => count($formats) > 1,
-    '#required' => TRUE,
-    '#description' => t('Default format to filter FAQ field content.'),
-  );
 
   // Input for the count of rows for the answer field.
   $form['answer_widget'] = array(
@@ -260,7 +247,15 @@ function faqfield_field_formatter_settings_form($field, $instance, $view_mode, $
  * Implements hook_field_is_empty().
  */
 function faqfield_field_is_empty($item, $field) {
-  return empty($item['question']) || empty($item['answer']);
+  // Here we test whether the submitted values are empty.
+  // Whether they are default values will be tested by hook_field_presave().
+  if (empty($item['question']) && (string) $item['question'] !== '0') {
+    return TRUE;
+  }
+  if (empty($item['answer']) && (string) $item['answer'] !== '0') {
+    return TRUE;
+  }
+  return FALSE;
 }
 
 /**
@@ -389,44 +384,68 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
   $base = $element;
   if ($instance['widget']['type'] === 'faqfield_textboxes') {
 
+    // @TODO backwards compatibility to beta3. remove soon.
+    if (!isset($field['settings']['advanced']['answer_rows'])) {
+      $field['settings']['advanced']['answer_rows'] = $field['settings']['answer_rows'];
+    }
+
+    // If the current value is empty we choose the default one.
+    if (empty($items[$delta])) {
+      $items[$delta] = $instance['default_value'][0];
+    }
+
     // Add textfield for question.
     $element['question'] = array(
       '#title' => check_plain($field['settings']['advanced']['question_title']),
       '#type' => 'textfield',
-      '#default_value' => isset($items[$delta]['question']) ? $items[$delta]['question'] : $instance['widget']['settings']['question'],
+      '#default_value' => $items[$delta]['question'],
       '#maxlength' => $field['settings']['advanced']['question_length'],
       '#delta' => $delta,
       '#weight' => 0,
     ) + $base;
 
+    // If we are displaying the default value (on field settings preview or
+    // while editing) and we're using formatable answer widget we have to
+    // extract the default values.
+    if (is_array(@$items[$delta]['answer'])) {
+      $items[$delta]['answer_format'] = $items[$delta]['answer']['format'];
+      $items[$delta]['answer'] = $items[$delta]['answer']['value'];
+    }
+
     // Add textarea / formatable textarea / textfield for answer.
     $element['answer'] = array(
       '#title' => check_plain($field['settings']['advanced']['answer_title']),
       '#type' => $field['settings']['answer_widget'],
-      '#default_value' => isset($items[$delta]['answer']) ? $items[$delta]['answer'] : $instance['widget']['settings']['answer'],
+      '#default_value' => $items[$delta]['answer'],
       '#delta' => $delta,
       '#weight' => 1,
-      '#format' => isset($items[$delta]['answer_format']) ? $items[$delta]['answer_format'] : $field['settings']['format'],
+      '#format' => $items[$delta]['answer_format'],
       '#rows' => $field['settings']['advanced']['answer_rows'],
     ) + $base;
-
   }
   return $element;
 }
 
 /**
- * Prepare formatable textarea values for saving them into the database.
+ * Implements hook_field_presave().
  *
- * Normal textarea's and textfields put their values simply in by
- * array($name => $value); Unfortunately text_format textareas put
- * them into an array so also the format gets saved: array($name
- * => array('value' => $value, 'format' => $format)).
- * So the API will try to save normal textfields to the 'name' field
- * and text_format fields to 'answer_value' and 'answer_format'.
- * To bypass this, we pull the values out of this array and force
- * them to be saved in 'answer' and 'answer_format'.
+ * Prepare formatable textarea values for saving them into the database.
  */
 function faqfield_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  // Here we test if the values are default ones, yes? -> remove them.
+  foreach ($items as $key => $values) {
+    if ($values == $instance['default_value'][0]) {
+      unset($items[$key]);
+    }
+  }
+  // Normal textarea's and textfields put their values simply in by
+  // array($name => $value); Unfortunately text_format textareas put
+  // them into an array so also the format gets saved: array($name
+  // => array('value' => $value, 'format' => $format)).
+  // So the API will try to save normal textfields to the 'name' field
+  // and text_format fields to 'answer_value' and 'answer_format'.
+  // To bypass this, we pull the values out of this array and force
+  // them to be saved in 'answer' and 'answer_format'.
   if ($field['settings']['answer_widget'] == 'text_format') {
     foreach ($items as &$values) {
       $values['answer_format'] = $values['answer']['format'];
