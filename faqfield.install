@@ -79,7 +79,7 @@ function faqfield_update_7100() {
 /**
  * Update faqfield settings as some of them have moved or were removed.
  */
-function faqfield_update_7101() {
+function faqfield_update_7110() {
   // Get all faqfields.
   $faqfields = field_read_fields(array(
     'type' => 'faqfield',
@@ -93,6 +93,11 @@ function faqfield_update_7101() {
       unset($field['settings']['answer_rows']);
       field_update_field($field);
     }
+
+    // We set the default values for new options.
+    $field['settings']['advanced']['question_length'] = 255;
+    $field['settings']['advanced']['question_title'] = t('Question');
+    $field['settings']['advanced']['answer_title'] = t('Answer');
 
     if ($field['settings']['answer_widget'] == 'text_format') {
       // In order to move the old format setting to the instance default value
