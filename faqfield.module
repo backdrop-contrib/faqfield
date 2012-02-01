@@ -82,11 +82,6 @@ function faqfield_field_create_field($field) {
 function faqfield_field_settings_form($field, $instance, $has_data) {
   $form = array();
 
-  // @TODO backwards compatibility to beta3. remove soon.
-  if (!isset($field['settings']['advanced']['answer_rows'])) {
-    $field['settings']['advanced']['answer_rows'] = $field['settings']['answer_rows'];
-  }
-
   // Input for the count of rows for the answer field.
   $form['answer_widget'] = array(
     '#type' => 'select',
@@ -245,10 +240,15 @@ function faqfield_field_formatter_settings_form($field, $instance, $view_mode, $
 
 /**
  * Implements hook_field_is_empty().
+ *
+ * Here we test whether the submitted values are empty.
+ * Whether they are default values will be tested by hook_field_presave().
  */
 function faqfield_field_is_empty($item, $field) {
-  // Here we test whether the submitted values are empty.
-  // Whether they are default values will be tested by hook_field_presave().
+  // If a format isset we have to continue anyway.
+  if (isset($item['answer']['format'])) {
+    return FALSE;
+  }
   if (empty($item['question']) && (string) $item['question'] !== '0') {
     return TRUE;
   }
@@ -383,11 +383,6 @@ function faqfield_field_widget_info() {
 function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $base = $element;
   if ($instance['widget']['type'] === 'faqfield_textboxes') {
-
-    // @TODO backwards compatibility to beta3. remove soon.
-    if (!isset($field['settings']['advanced']['answer_rows'])) {
-      $field['settings']['advanced']['answer_rows'] = $field['settings']['answer_rows'];
-    }
 
     // If the current value is empty we choose the default one.
     if (empty($items[$delta])) {

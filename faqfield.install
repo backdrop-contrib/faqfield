@@ -75,3 +75,39 @@ function faqfield_update_7100() {
     }
   }
 }
+
+/**
+ * Update faqfield settings as some of them have moved or were removed.
+ */
+function faqfield_update_7101() {
+  // Get all faqfields.
+  $faqfields = field_read_fields(array(
+    'type' => 'faqfield',
+  ));
+
+  // Iterate through all existing field tables and alter them as needed.
+  foreach ($faqfields as $field) {
+    // We move the old setting to its new position.
+    if (isset($field['settings']['answer_rows'])) {
+      $field['settings']['advanced']['answer_rows'] = $field['settings']['answer_rows'];
+      unset($field['settings']['answer_rows']);
+      field_update_field($field);
+    }
+
+    if ($field['settings']['answer_widget'] == 'text_format') {
+      // In order to move the old format setting to the instance default value
+      // we got to find out all instances and alter them.
+      $field_info = field_info_field($field['field_name']);
+      // Get the fields instance data.
+      foreach ($field_info['bundles'] as $entity_type => $bundles) {
+        foreach ($bundles as $bundle) {
+          $instance = field_read_instance($entity_type, $field['field_name'], $bundle);
+          if (isset($instance['default_value'][0]['answer']['format'])) {
+            $instance['default_value'][0]['answer']['format'] = $field['settings']['format'];
+            field_update_instance($instance);
+          }
+        }
+      }
+    }
+  }
+}
