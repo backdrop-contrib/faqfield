@@ -91,13 +91,13 @@ function faqfield_update_7110() {
     if (isset($field['settings']['answer_rows'])) {
       $field['settings']['advanced']['answer_rows'] = $field['settings']['answer_rows'];
       unset($field['settings']['answer_rows']);
-      field_update_field($field);
     }
 
     // We set the default values for new options.
     $field['settings']['advanced']['question_length'] = 255;
     $field['settings']['advanced']['question_title'] = t('Question');
     $field['settings']['advanced']['answer_title'] = t('Answer');
+    field_update_field($field);
 
     if ($field['settings']['answer_widget'] == 'text_format') {
       // In order to move the old format setting to the instance default value
