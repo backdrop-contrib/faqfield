@@ -21,27 +21,6 @@ function theme_faqfield_formatter($variables) {
 }
 
 /**
- * Implements hook_help().
- */
-function faqfield_help($path, $arg) {
-  switch ($path) {
-    case 'admin/help#faqfield':
-      $output = '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t('This module provides a field for frequently asked questions. Added, you can create simple but smooth FAQs on any piece of content.') . '</p>';
-      $output .= '<h3>' . t('Usage') . '</h3>';
-      $output .= '<dl>';
-      $output .= '<dt>' . t('Configuration') . '</dt>';
-      $output .= '<dd>' . t("No configuration needed.") . '</dd>';
-      $output .= '<dt>' . t('How to use') . '</dt>';
-      $output .= '<dd>' . t("You can add the field to any entity (eg. content type, users, ..) as usual. After you applied the field you have to configure how its output should be filtered (eg. Filtered HTML, Plain Text). Also it is recommended to set the number of values to unlimited.") . '</dd>';
-      $output .= '<dt>' . t('Formatters') . '</dt>';
-      $output .= '<dd>' . t("You have the choise of two display formatters: jQuery accordion (animated show / hide) and simple text (none formatted, simple output for custom theming). If you are using accordion you can modify its behaviour easily by the display settings.") . '</dd>';
-      $output .= '</dl>';
-      return $output;
-  }
-}
-
-/**
  * Implements hook_field_info().
  *
  * Provides the description of the field.
@@ -56,6 +35,7 @@ function faqfield_field_info() {
       // Set the default field settings.
       'settings' => array(
         'answer_widget' => 'textarea',
+        'format' => 0,
         'advanced' => array(
           'question_length' => 255,
           'question_title'  => t('Question'),
@@ -94,6 +74,27 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
     ),
     '#required' => TRUE,
     '#description' => t('What form widget to use for answer input. Formatable textarea is needed for WYSIWYG editors.'),
+  );
+
+  // Get a list of formats that the current user has access to.
+  $formats = filter_formats();
+  foreach ($formats as $format) {
+    $options[$format->format] = $format->name;
+  }
+  // Format select input for field settings.
+  $form['format'] = array(
+    '#type' => 'select',
+    '#title' => t('Text format'),
+    '#default_value' => @$field['settings']['format'],
+    '#options' => $options,
+    '#access' => count($formats) > 1,
+    '#required' => TRUE,
+    '#description' => t('Format to filter FAQ field answer content.'),
+    '#states' => array(
+      'invisible' => array(
+        ':input[id="edit-field-settings-answer-widget"]' => array('value' => 'text_format'),
+      ),
+    ),
   );
 
   // We put more advanced settings into a collapsed fieldset.
@@ -414,7 +415,8 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
       '#default_value' => $items[$delta]['answer'],
       '#delta' => $delta,
       '#weight' => 1,
-      '#format' => $items[$delta]['answer_format'],
+      // We choose the source output format depending on the input type.
+      '#format' => ($field['settings']['answer_widget'] == 'text_format') ? $items[$delta]['answer_format'] : $field['settings']['format'],
       '#rows' => $field['settings']['advanced']['answer_rows'],
     ) + $base;
   }
@@ -446,5 +448,28 @@ function faqfield_field_presave($entity_type, $entity, $field, $instance, $langc
       $values['answer_format'] = $values['answer']['format'];
       $values['answer'] = $values['answer']['value'];
     }
+  }
+}
+
+/**
+ * Implements hook_help().
+ *
+ * Dirty looking stuff comes in the end.. does actually anyone needs this?
+ */
+function faqfield_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#faqfield':
+      $output = '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('This module provides a field for frequently asked questions. Added, you can create simple but smooth FAQs on any piece of content.') . '</p>';
+      $output .= '<h3>' . t('Usage') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('Configuration') . '</dt>';
+      $output .= '<dd>' . t("No configuration needed.") . '</dd>';
+      $output .= '<dt>' . t('How to use') . '</dt>';
+      $output .= '<dd>' . t("You can add the field to any entity (eg. content type, users, ..) as usual. After you applied the field you have to configure how its output should be filtered (eg. Filtered HTML, Plain Text). Also it is recommended to set the number of values to unlimited.") . '</dd>';
+      $output .= '<dt>' . t('Formatters') . '</dt>';
+      $output .= '<dd>' . t("You have the choise of two display formatters: jQuery accordion (animated show / hide) and simple text (none formatted, simple output for custom theming). If you are using accordion you can modify its behaviour easily by the display settings.") . '</dd>';
+      $output .= '</dl>';
+      return $output;
   }
 }
