@@ -56,7 +56,7 @@ function faqfield_field_info() {
       // Set the default field settings.
       'settings' => array(
         'format' => 0,
-        'answer_widget'   => 'textarea',
+        'answer_widget' => 'textarea',
         'advanced' => array(
           'question_length' => 255,
           'question_title'  => t('Question'),
@@ -66,6 +66,15 @@ function faqfield_field_info() {
       ),
     ),
   );
+}
+
+/**
+ * Implements hook_field_create_field().
+ */
+function faqfield_field_create_field($field) {
+  // Here we want to set a default cardinality of unlimited after the field was created.
+  $field['cardinality'] = -1;
+  field_update_field($field);
 }
 
 /**
