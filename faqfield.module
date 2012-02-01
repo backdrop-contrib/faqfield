@@ -6,6 +6,21 @@
  */
 
 /**
+ * Returns HTML for a faqfield formatter.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - question: Prefiltered question value by check_plain.
+ *   - answer: Prefiltered answer value by field setting format.
+ *   - delta: Delta of field element.
+ */
+function theme_faqfield_formatter($variables) {
+  $output = '<h3 class="faqfield-question">' . $variables['question'] . '</h3>';
+  $output .= '<div class="faqfield-answer">' . $variables['answer'] . '</div>';
+  return $output;
+}
+
+/**
  * Implements hook_help().
  */
 function faqfield_help($path, $arg) {
@@ -41,8 +56,13 @@ function faqfield_field_info() {
       // Set the default field settings.
       'settings' => array(
         'format' => 0,
-        'answer_widget' => 'textarea',
-        'answer_rows' => 3,
+        'answer_widget'   => 'textarea',
+        'advanced' => array(
+          'question_length' => 255,
+          'question_title'  => t('Question'),
+          'answer_title'    => t('Answer'),
+          'answer_rows'     => 3,
+        ),
       ),
     ),
   );
@@ -85,11 +105,50 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
     '#description' => t('What form widget to use for answer input. Formatable textarea is needed for WYSIWYG editors.'),
   );
 
+  // We put more advanced settings into a collapsed fieldset.
+  $form['advanced'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Advanced settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+
+  // Input for the maximum length of questions.
+  $form['advanced']['question_length'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Question length'),
+    '#default_value' => $field['settings']['advanced']['question_length'],
+    '#description' => t('Maximum length of questions (Between 10-255).'),
+    '#element_validate' => array('_faqfield_element_validate_question_length'),
+    '#maxlength' => 3,
+    '#size' => 5,
+  );
+
+  // Input for custom title of questions.
+  $form['advanced']['question_title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Question input title'),
+    '#default_value' => $field['settings']['advanced']['question_title'],
+    '#description' => t('Custom title of question input.'),
+    '#maxlength' => 50,
+    '#size' => 20,
+  );
+
+  // Input for custom title of answers.
+  $form['advanced']['answer_title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Answer input title'),
+    '#default_value' => $field['settings']['advanced']['answer_title'],
+    '#description' => t('Custom title of answer input.'),
+    '#maxlength' => 50,
+    '#size' => 20,
+  );
+
   // Input for the count of rows for the answer field.
-  $form['answer_rows'] = array(
+  $form['advanced']['answer_rows'] = array(
     '#type' => 'select',
     '#title' => t('Answer rows'),
-    '#default_value' => $field['settings']['answer_rows'],
+    '#default_value' => $field['settings']['advanced']['answer_rows'],
     '#options' => array(1 => '1', 2 => '2', 3 => '3', 4 => '4', 5 => '5'),
     '#required' => TRUE,
     '#description' => t('Number of rows used for the answer textarea.'),
@@ -101,6 +160,15 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
   );
 
   return $form;
+}
+
+/**
+ * Element validation callback for question length setting.
+ */
+function _faqfield_element_validate_question_length($element, &$form_state, $form) {
+  if ($element['#value'] > 255 || $element['#value'] < 10) {
+    form_error($element, t('Maximum length of question must be between 10 - 255.'));
+  }
 }
 
 /**
@@ -149,9 +217,6 @@ function faqfield_field_formatter_settings_form($field, $instance, $view_mode, $
       '#default_value' => $settings['active'],
       '#description' => t('Index of active element. Leave empty to display none at start.'),
       // @TODO _element_validate_number() is deprecated since 7.8.
-      // Need to switch to element_validate_number() when most people updated.
-      // '#element_validate' => array('element_validate_number'),
-      // Currently using fallback functionality:
       '#element_validate' => array(function_exists('element_validate_number') ? 'element_validate_number' : '_element_validate_number'),
       '#maxlength' => 3,
       '#size' => 5,
@@ -199,10 +264,10 @@ function faqfield_field_formatter_info() {
       'label' => t('Accordion'),
       'field types' => array('faqfield'),
       'settings' => array(
-        'active' => 0,
-        'autoHeight' => TRUE,
+        'active'      => 0,
+        'autoHeight'  => TRUE,
         'collapsible' => FALSE,
-        'event' => 'click',
+        'event'       => 'click',
       ),
     ),
     // This formatter just displays the FAQ content as simple text.
@@ -284,26 +349,11 @@ function faqfield_theme() {
     'faqfield_formatter' => array(
       'variables' => array(
         'question' => NULL,
-        'answer' => NULL,
-        'delta' => NULL,
+        'answer'   => NULL,
+        'delta'    => NULL,
       ),
     ),
   );
-}
-
-/**
- * Returns HTML for a faqfield formatter.
- *
- * @param array $variables
- *   An associative array containing:
- *   - question
- *   - answer
- *   - delta
- */
-function theme_faqfield_formatter($variables) {
-  $output = '<h3 class="faqfield-question">' . $variables['question'] . '</h3>';
-  $output .= '<div class="faqfield-answer">' . $variables['answer'] . '</div>';
-  return $output;
 }
 
 /**
@@ -317,7 +367,7 @@ function faqfield_field_widget_info() {
       'field types' => array('faqfield'),
       'settings' => array(
         'question' => '',
-        'answer' => '',
+        'answer'   => '',
       ),
     ),
   );
@@ -332,23 +382,23 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
 
     // Add textfield for question.
     $element['question'] = array(
-      '#title' => t('Question'),
+      '#title' => check_plain($field['settings']['advanced']['question_title']),
       '#type' => 'textfield',
       '#default_value' => isset($items[$delta]['question']) ? $items[$delta]['question'] : $instance['widget']['settings']['question'],
-      '#maxlength' => 255,
+      '#maxlength' => $field['settings']['advanced']['question_length'],
       '#delta' => $delta,
       '#weight' => 0,
     ) + $base;
 
     // Add textarea / formatable textarea / textfield for answer.
     $element['answer'] = array(
-      '#title' => t('Answer'),
+      '#title' => check_plain($field['settings']['advanced']['answer_title']),
       '#type' => $field['settings']['answer_widget'],
       '#default_value' => isset($items[$delta]['answer']) ? $items[$delta]['answer'] : $instance['widget']['settings']['answer'],
       '#delta' => $delta,
       '#weight' => 1,
       '#format' => isset($items[$delta]['answer_format']) ? $items[$delta]['answer_format'] : $field['settings']['format'],
-      '#rows' => $field['settings']['answer_rows'],
+      '#rows' => $field['settings']['advanced']['answer_rows'],
     ) + $base;
 
   }
