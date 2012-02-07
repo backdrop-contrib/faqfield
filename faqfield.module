@@ -446,8 +446,10 @@ function faqfield_field_presave($entity_type, $entity, $field, $instance, $langc
   // them to be saved in 'answer' and 'answer_format'.
   if ($field['settings']['answer_widget'] == 'text_format') {
     foreach ($items as &$values) {
-      $values['answer_format'] = $values['answer']['format'];
-      $values['answer'] = $values['answer']['value'];
+      if(is_array($values['answer'])){
+        $values['answer_format'] = $values['answer']['format'];
+        $values['answer'] = $values['answer']['value'];
+      }
     }
   }
 }
