@@ -318,7 +318,7 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
       $element[0]['#markup'] = '<div id="' . $faqfield_id . '">';
       foreach ($items as $item) {
         // Decide whether to use the default format or the custom one.
-        $format = isset($item['answer_format']) ? $item['answer_format'] : $field['settings']['format'];
+        $format = (!empty($item['answer_format']) ? $item['answer_format'] : $field['settings']['format']);
         // Build the markup.
         $element[0]['#markup'] .= '<h3 class="faqfield-question"><a href="#">' . check_markup($item['question'], $format) . '</a></h3>';
         $element[0]['#markup'] .= '<div class="faqfield-answer">' . check_markup($item['answer'], $format) . '</div>';
@@ -330,7 +330,7 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
     case 'faqfield_simple_text':
       foreach ($items as $delta => $item) {
         // Decide whether to use the default format or the custom one.
-        $format = isset($item['answer_format']) ? $item['answer_format'] : $field['settings']['format'];
+        $format = (!empty($item['answer_format']) ? $item['answer_format'] : $field['settings']['format']);
         // Add them as page elements, they'll be rendered automatically later.
         $element[$delta] = array(
           '#theme' => 'faqfield_formatter',
