@@ -101,7 +101,7 @@ function faqfield_update_7120() {
 
       // Iterate through current data tables.
       foreach ($tables['FIELD_LOAD_CURRENT'] as $data_table => $table_fields) {
-        if (!db_field_exists($table, $field['field_name'] . '_answer_format')) {
+        if (!db_field_exists($data_table, $field['field_name'] . '_answer_format')) {
           // Add new answer_format field.
           db_add_field($data_table, $field['field_name'] . '_answer_format', $updated['answer_format']);
         }
