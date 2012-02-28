@@ -249,14 +249,10 @@ function faqfield_field_formatter_settings_form($field, $instance, $view_mode, $
  * Whether they are default values will be tested by hook_field_presave().
  */
 function faqfield_field_is_empty($item, $field) {
-  // If a format isset we have to continue anyway.
-  if (isset($item['answer']['format'])) {
-    return FALSE;
-  }
-  if (empty($item['question']) && (string) $item['question'] !== '0') {
+  if (empty($item['question'])) {
     return TRUE;
   }
-  if (empty($item['answer']) && (string) $item['answer'] !== '0') {
+  if (empty($item['answer'])) {
     return TRUE;
   }
   return FALSE;
@@ -432,25 +428,30 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
  * Prepare formatable textarea values for saving them into the database.
  */
 function faqfield_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
-  // Here we test if the values are default ones, yes? -> remove them.
-  foreach ($items as $key => $values) {
-    if ($values == $instance['default_value'][0]) {
-      unset($items[$key]);
+  foreach ($items as $key => &$values) {
+    if (is_array($values['answer'])) {
+      // Normal textarea's and textfields put their values simply in by
+      // array($name => $value); Unfortunately text_format textareas put
+      // them into an array so also the format gets saved: array($name
+      // => array('value' => $value, 'format' => $format)).
+      // So the API will try to save normal textfields to the 'name' field
+      // and text_format fields to 'answer_value' and 'answer_format'.
+      // To bypass this, we pull the values out of this array and force
+      // them to be saved in 'answer' and 'answer_format'.
+      $values['answer_format'] = $values['answer']['format'];
+      $values['answer'] = $values['answer']['value'];
     }
-  }
-  // Normal textarea's and textfields put their values simply in by
-  // array($name => $value); Unfortunately text_format textareas put
-  // them into an array so also the format gets saved: array($name
-  // => array('value' => $value, 'format' => $format)).
-  // So the API will try to save normal textfields to the 'name' field
-  // and text_format fields to 'answer_value' and 'answer_format'.
-  // To bypass this, we pull the values out of this array and force
-  // them to be saved in 'answer' and 'answer_format'.
-  if ($field['settings']['answer_widget'] == 'text_format') {
-    foreach ($items as &$values) {
-      if(is_array($values['answer'])){
-        $values['answer_format'] = $values['answer']['format'];
-        $values['answer'] = $values['answer']['value'];
+    // Here we test if the values are default ones, yes? -> remove them.
+    if ($values['question'] == $instance['default_value'][0]['question']) {
+      if (is_array($instance['default_value'][0]['answer'])) {
+        if ($values['answer'] == $instance['default_value'][0]['answer']['value']) {
+          unset($items[$key]);
+        }
+      }
+      else {
+        if ($values['answer'] == $instance['default_value'][0]['answer']) {
+          unset($items[$key]);
+        }
       }
     }
   }
