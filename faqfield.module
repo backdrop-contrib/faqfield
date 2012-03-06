@@ -243,22 +243,6 @@ function faqfield_field_formatter_settings_form($field, $instance, $view_mode, $
 }
 
 /**
- * Implements hook_field_is_empty().
- *
- * Here we test whether the submitted values are empty.
- * Whether they are default values will be tested by hook_field_presave().
- */
-function faqfield_field_is_empty($item, $field) {
-  if (empty($item['question'])) {
-    return TRUE;
-  }
-  if (empty($item['answer'])) {
-    return TRUE;
-  }
-  return FALSE;
-}
-
-/**
  * Implements hook_field_formatter_info().
  */
 function faqfield_field_formatter_info() {
@@ -384,6 +368,15 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
   $base = $element;
   if ($instance['widget']['type'] === 'faqfield_textboxes') {
 
+    // If the current form is the default value form of field settings
+    // we'll handle it's check-empty separately.
+    if (@$form['#title'] == t('Default value')) {
+      $element['field_config'] = array(
+        '#type' => 'hidden',
+        '#value' => TRUE,
+      );
+    }
+
     // If the current value is empty we choose the default one.
     if (empty($items[$delta])) {
       $items[$delta] = $instance['default_value'][0];
@@ -423,11 +416,47 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
 }
 
 /**
+ * Implements hook_field_is_empty().
+ *
+ * Here we test whether the submitted values are empty.
+ * Whether they are default values will be tested by hook_field_presave().
+ */
+function faqfield_field_is_empty($item, $field) {
+  // As we can set a default format from the field configuration page,
+  // we want to save it even if question and answer are actually empty.
+  // So we need to check whether the field was submitted from an entity
+  // or from the field configuration.
+  // If the form was submitted from field config, a helper value was set
+  // and we can return FALSE for saving the format.
+  if (@$item['field_config'] === TRUE && is_array($item['answer'])) {
+    return FALSE;
+  }
+  // If it's not field configuration submit, so we'll really check whether
+  // it is empty.
+  // Check question.
+  if (empty($item['question'])) {
+    return TRUE;
+  }
+  // Check answer, but make sure about text formats.
+  if (is_array($item['answer'])) {
+    if (empty($item['answer']['value'])) {
+      return TRUE;
+    }
+  }
+  else {
+    if (empty($item['answer'])) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/**
  * Implements hook_field_presave().
  *
  * Prepare formatable textarea values for saving them into the database.
  */
-function faqfield_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+function faqfield_field_presave($entity_type, $entity, &$field, $instance, $langcode, &$items) {
   foreach ($items as $key => &$values) {
     if (is_array($values['answer'])) {
       // Normal textarea's and textfields put their values simply in by
