@@ -278,7 +278,6 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
     // This will not be themeable, because changes would break
     // jQuery UI accordion functionality!
     case 'faqfield_accordion':
-
       $faqfield_id = 'faqfield_' . $field['field_name'];
 
       // Add jQuery UI accordion library.
@@ -456,7 +455,7 @@ function faqfield_field_is_empty($item, $field) {
  *
  * Prepare formatable textarea values for saving them into the database.
  */
-function faqfield_field_presave($entity_type, $entity, &$field, $instance, $langcode, &$items) {
+function faqfield_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
   foreach ($items as $key => &$values) {
     if (is_array($values['answer'])) {
       // Normal textarea's and textfields put their values simply in by
