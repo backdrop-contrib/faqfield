@@ -52,10 +52,10 @@ function faqfield_field_info() {
  * Implements hook_field_create_field().
  */
 function faqfield_field_create_field($field) {
-  // Here we want to set a default cardinality of unlimited
-  // after a faqfield was created.
   if ($field['type'] == 'faqfield') {
-    $field['cardinality'] = -1;
+    // Here we want to set a default cardinality of
+    // unlimited after a faqfield was created.
+    $field['cardinality'] = FIELD_CARDINALITY_UNLIMITED;
     field_update_field($field);
   }
 }
