@@ -444,20 +444,10 @@ function faqfield_field_is_empty($item, $field) {
   }
   // If it's not field configuration submit, so we'll really check whether
   // it is empty.
-  // Check question.
-  if (empty($item['question'])) {
+  $answer_value = is_array($item['answer']) ? $item['answer']['value'] : $item['answer'];
+  // Return TRUE only if both are empty.
+  if (empty($item['question']) && empty($answer_value)) {
     return TRUE;
-  }
-  // Check answer, but make sure about text formats.
-  if (is_array($item['answer'])) {
-    if (empty($item['answer']['value'])) {
-      return TRUE;
-    }
-  }
-  else {
-    if (empty($item['answer'])) {
-      return TRUE;
-    }
   }
   return FALSE;
 }
