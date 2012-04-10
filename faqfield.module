@@ -129,13 +129,18 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
     '#maxlength' => 3,
     '#size' => 5,
   );
-  
+
   // Input for the count of rows for the answer field.
   $form['advanced']['question_rows'] = array(
     '#type' => 'select',
     '#title' => t('Question rows'),
     '#default_value' => $field['settings']['advanced']['question_rows'],
-    '#options' => array(1 => '1 (Fieldset)', 2 => '2 (Textarea)', 3 => '3 (Textarea)', 4 => '4 (Textarea)'),
+    '#options' => array(
+      1 => '1 (Fieldset)',
+      2 => '2 (Textarea)',
+      3 => '3 (Textarea)',
+      4 => '4 (Textarea)',
+    ),
     '#required' => TRUE,
     '#description' => t('Number of rows used for the question textfield/textarea.'),
   );
