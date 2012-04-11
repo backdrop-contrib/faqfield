@@ -400,12 +400,12 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
     // Add textfield for question.
     $element['question'] = array(
       '#title' => check_plain($field['settings']['advanced']['question_title']),
-      '#type' => ($field['settings']['advanced']['question_rows'] == 1) ? 'textfield' : 'textarea',
+      '#type' => (@$field['settings']['advanced']['question_rows'] == 1) ? 'textfield' : 'textarea',
       '#default_value' => $items[$delta]['question'],
       '#maxlength' => $field['settings']['advanced']['question_length'],
       '#delta' => $delta,
       '#weight' => 0,
-      '#rows' => $field['settings']['advanced']['question_rows'],
+      '#rows' => @$field['settings']['advanced']['question_rows'],
     ) + $base;
 
     // If we are displaying the default value (on field settings preview or
