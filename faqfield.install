@@ -117,3 +117,39 @@ function faqfield_update_7120() {
     }
   }
 }
+
+/**
+ * Update default values of existing faqfield instances (Issue #1526448).
+ */
+function faqfield_update_7130() {
+  // Get all faqfields.
+  $faqfields = field_read_fields(array(
+    'type' => 'faqfield',
+  ));
+
+  foreach ($faqfields as $faqfield) {
+    // Get all instances of this field.
+    $instances = field_read_instances(array(
+      'field_name' => $faqfield['field_name'],
+    ));
+
+    foreach ($instances as $instance) {
+      // If a default value is set we move it to it's new place.
+      if (isset($instance['default_value'])) {
+        $default_value = $instance['default_value'][0];
+        // If a formatable answer widget is used we have to extract
+        // the default values (value and format) out of it.
+        if (is_array($default_value['answer'])) {
+          $default_value['answer_format'] = $default_value['answer']['format'];
+          $default_value['answer'] = $default_value['answer']['value'];
+        }
+        // The S will make the difference between core's default
+        // value implementation and our custom one.
+        $instance['default_values'] = $default_value;
+        $instance['default_value'] = NULL;
+        // Save the changes to the field instance.
+        field_update_instance($instance);
+      }
+    }
+  }
+}

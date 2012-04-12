@@ -382,45 +382,33 @@ function faqfield_field_widget_info() {
 function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $base = $element;
   if ($instance['widget']['type'] === 'faqfield_textboxes') {
-
-    // If the current form is the default value form of field settings
-    // we'll handle it's check-empty separately.
-    if (@$form['#title'] == t('Default value')) {
-      $element['field_config'] = array(
-        '#type' => 'hidden',
-        '#value' => TRUE,
-      );
+    // If the current form is the default value fieldset of the field settings
+    // form, we have to save the default value separately (Issue #1526448).
+    if (isset($form['#title']) && $form['#title'] == t('Default value')) {
+      $form['#element_validate'][] = 'faqfield_field_widget_form_default_value_element';
     }
 
     // If the current value is empty we choose the default one.
-    if (empty($items[$delta])) {
-      $items[$delta] = $instance['default_value'][0];
+    if (empty($items[$delta]) && isset($instance['default_values'])) {
+      $items[$delta] = $instance['default_values'];
     }
 
     // Add textfield for question.
     $element['question'] = array(
       '#title' => check_plain($field['settings']['advanced']['question_title']),
       '#type' => (@$field['settings']['advanced']['question_rows'] == 1) ? 'textfield' : 'textarea',
-      '#default_value' => $items[$delta]['question'],
+      '#default_value' => @$items[$delta]['question'],
       '#maxlength' => $field['settings']['advanced']['question_length'],
       '#delta' => $delta,
       '#weight' => 0,
       '#rows' => @$field['settings']['advanced']['question_rows'],
     ) + $base;
 
-    // If we are displaying the default value (on field settings preview or
-    // while editing) and we're using formatable answer widget we have to
-    // extract the default values.
-    if (is_array(@$items[$delta]['answer'])) {
-      $items[$delta]['answer_format'] = $items[$delta]['answer']['format'];
-      $items[$delta]['answer'] = $items[$delta]['answer']['value'];
-    }
-
     // Add textarea / formatable textarea / textfield for answer.
     $element['answer'] = array(
       '#title' => check_plain($field['settings']['advanced']['answer_title']),
       '#type' => $field['settings']['answer_widget'],
-      '#default_value' => $items[$delta]['answer'],
+      '#default_value' => @$items[$delta]['answer'],
       '#delta' => $delta,
       '#weight' => 1,
       // We choose the source output format depending on the input type.
@@ -432,23 +420,36 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
 }
 
 /**
+ * Element validation / submission handler for handling default
+ * values from the field settings page.
+ */
+function faqfield_field_widget_form_default_value_element($element, &$form_state, $form) {
+  $field = $form['#field'];
+  // As we can set a default format from the field configuration page,
+  // we want to save it even if question and answer are actually empty
+  // but we have to make sure the submitted default value is saved
+  // separately to avoid the widget form beeing build twice (#1526448).
+  if (isset($form_state['values'][$field['field_name']])) {
+    // Save the default value in the field instance in our own way.
+    $default_value = $form_state['values'][$field['field_name']][LANGUAGE_NONE][0];
+    // If we're using the formatable answer widget we have to
+    // extract the default values (value and format) out of it.
+    if (is_array($default_value['answer'])) {
+      $default_value['answer_format'] = $default_value['answer']['format'];
+      $default_value['answer'] = $default_value['answer']['value'];
+    }
+    $form_state['values']['instance']['default_values'] = $default_value;
+    $form_state['values'][$field['field_name']] = NULL;
+  }
+}
+
+/**
  * Implements hook_field_is_empty().
  *
  * Here we test whether the submitted values are empty.
  * Whether they are default values will be tested by hook_field_presave().
  */
 function faqfield_field_is_empty($item, $field) {
-  // As we can set a default format from the field configuration page,
-  // we want to save it even if question and answer are actually empty.
-  // So we need to check whether the field was submitted from an entity
-  // or from the field configuration.
-  // If the form was submitted from field config, a helper value was set
-  // and we can return FALSE for saving the format.
-  if (@$item['field_config'] === TRUE && is_array($item['answer'])) {
-    return FALSE;
-  }
-  // If it's not field configuration submit, so we'll really check whether
-  // it is empty.
   $answer_value = is_array($item['answer']) ? $item['answer']['value'] : $item['answer'];
   // Return TRUE only if both are empty.
   if (empty($item['question']) && empty($answer_value)) {
@@ -477,14 +478,9 @@ function faqfield_field_presave($entity_type, $entity, $field, $instance, $langc
       $values['answer'] = $values['answer']['value'];
     }
     // Here we test if the values are default ones, yes? -> remove them.
-    if ($values['question'] == $instance['default_value'][0]['question']) {
-      if (is_array($instance['default_value'][0]['answer'])) {
-        if ($values['answer'] == $instance['default_value'][0]['answer']['value']) {
-          unset($items[$key]);
-        }
-      }
-      else {
-        if ($values['answer'] == $instance['default_value'][0]['answer']) {
+    if (isset($instance['default_values'])) {
+      if ($values['question'] == $instance['default_values']['question']) {
+        if ($values['answer'] == $instance['default_values']['answer']) {
           unset($items[$key]);
         }
       }
