@@ -70,7 +70,7 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
   $form['answer_widget'] = array(
     '#type' => 'select',
     '#title' => t('Answer widget'),
-    '#default_value' => $field['settings']['answer_widget'],
+    '#default_value' => @$field['settings']['answer_widget'],
     '#options' => array(
       'textarea' => t('Textarea'),
       'text_format' => t('Formatable textarea'),
@@ -113,7 +113,7 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
   $form['advanced']['question_title'] = array(
     '#type' => 'textfield',
     '#title' => t('Question input title'),
-    '#default_value' => $field['settings']['advanced']['question_title'],
+    '#default_value' => @$field['settings']['advanced']['question_title'],
     '#description' => t('Custom title of question input.'),
     '#maxlength' => 50,
     '#size' => 20,
@@ -123,7 +123,7 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
   $form['advanced']['question_length'] = array(
     '#type' => 'textfield',
     '#title' => t('Question length'),
-    '#default_value' => $field['settings']['advanced']['question_length'],
+    '#default_value' => @$field['settings']['advanced']['question_length'],
     '#description' => t('Maximum length of questions (Between 10-255).'),
     '#element_validate' => array('_faqfield_element_validate_question_length'),
     '#maxlength' => 3,
@@ -134,7 +134,7 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
   $form['advanced']['question_rows'] = array(
     '#type' => 'select',
     '#title' => t('Question rows'),
-    '#default_value' => $field['settings']['advanced']['question_rows'],
+    '#default_value' => @$field['settings']['advanced']['question_rows'],
     '#options' => array(
       1 => '1 (Fieldset)',
       2 => '2 (Textarea)',
@@ -149,7 +149,7 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
   $form['advanced']['answer_title'] = array(
     '#type' => 'textfield',
     '#title' => t('Answer input title'),
-    '#default_value' => $field['settings']['advanced']['answer_title'],
+    '#default_value' => @$field['settings']['advanced']['answer_title'],
     '#description' => t('Custom title of answer input.'),
     '#maxlength' => 50,
     '#size' => 20,
@@ -159,7 +159,7 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
   $form['advanced']['answer_rows'] = array(
     '#type' => 'select',
     '#title' => t('Answer rows'),
-    '#default_value' => $field['settings']['advanced']['answer_rows'],
+    '#default_value' => @$field['settings']['advanced']['answer_rows'],
     '#options' => array(1 => '1', 2 => '2', 3 => '3', 4 => '4', 5 => '5'),
     '#required' => TRUE,
     '#description' => t('Number of rows used for the answer textarea.'),
@@ -396,7 +396,7 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
     // Add textfield for question.
     $element['question'] = array(
       '#title' => check_plain($field['settings']['advanced']['question_title']),
-      '#type' => (@$field['settings']['advanced']['question_rows'] == 1) ? 'textfield' : 'textarea',
+      '#type' => (@$field['settings']['advanced']['question_rows'] > 1) ? 'textarea' : 'textfield',
       '#default_value' => @$items[$delta]['question'],
       '#maxlength' => $field['settings']['advanced']['question_length'],
       '#delta' => $delta,
