@@ -317,7 +317,7 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
         // Decide whether to use the default format or the custom one.
         $format = (!empty($item['answer_format']) ? $item['answer_format'] : $field['settings']['format']);
         // Build the markup.
-        $element[0]['#markup'] .= '<h3 class="faqfield-question"><a href="#">' . check_markup($item['question'], $format) . '</a></h3>';
+        $element[0]['#markup'] .= '<h3 class="faqfield-question"><a href="#">' . check_plain($item['question']) . '</a></h3>';
         $element[0]['#markup'] .= '<div class="faqfield-answer">' . check_markup($item['answer'], $format) . '</div>';
       }
       $element[0]['#markup'] .= '</div>';
@@ -332,7 +332,7 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
         $element[$delta] = array(
           '#theme' => 'faqfield_formatter',
           // Filter values before passing them to the template.
-          '#question' => check_markup($item['question'], $format),
+          '#question' => check_plain($item['question']),
           '#answer' => check_markup($item['answer'], $format),
           '#delta' => $delta,
         );
