@@ -294,7 +294,9 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
     // This will not be themeable, because changes would break
     // jQuery UI accordion functionality!
     case 'faqfield_accordion':
-      $faqfield_id = 'faqfield_' . $field['field_name'];
+      // Generate faqfield id by fieldname and entity id.
+      $entity_ids = entity_extract_ids($entity_type, $entity);
+      $faqfield_id = 'faqfield_' . $field['field_name'] . '_' . $entity_ids[0];
 
       // Add jQuery UI accordion library.
       drupal_add_library('system', 'ui.accordion');
