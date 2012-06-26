@@ -288,6 +288,11 @@ function faqfield_field_formatter_info() {
 function faqfield_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
 
+  // If there are no items to process, we've nothing to do here.
+  if (empty($items)) {
+    return $element;
+  }
+
   switch ($display['type']) {
 
     // This formatter adds jQuery accordion widget.
