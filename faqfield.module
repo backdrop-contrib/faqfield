@@ -226,7 +226,7 @@ function faqfield_field_formatter_settings_form($field, $instance, $view_mode, $
       '#type' => 'textfield',
       '#title' => t('Active'),
       '#default_value' => $settings['active'],
-      '#description' => t('Index of active element. Leave empty to display none at start.'),
+      '#description' => t('Index of active element starting from 0. Leave empty to display none at start.'),
       // @TODO _element_validate_number() is deprecated since 7.8.
       '#element_validate' => array(function_exists('element_validate_number') ? 'element_validate_number' : '_element_validate_number'),
       '#maxlength' => 3,
