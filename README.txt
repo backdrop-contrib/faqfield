@@ -27,5 +27,7 @@ Usage
   You have the choise of two display formatters:
   - Accordion (jQuery JavaScript animated show / hide) [Default]
   - Simple text (none formatted, simple output for custom theming)
+  - Definition list (typical <dl> FAQ list)
+  - Anchor list (a FAQ with anchor link list)
   If you are using accordion you can modify its behaviour easily by the display
   settings.
