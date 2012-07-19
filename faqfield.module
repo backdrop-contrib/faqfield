@@ -192,19 +192,33 @@ function faqfield_field_formatter_settings_summary($field, $instance, $view_mode
   $summary = '';
 
   // Accordion display settings summary.
-  if ($display['type'] === 'faqfield_accordion') {
-    $summary_elements = array();
-    if ($settings['active'] !== '') {
-      $summary_elements[] = t('Active: @element', array('@element' => $settings['active']));
-    }
-    if ($settings['autoHeight']) {
-      $summary_elements[] = t('Auto height');
-    }
-    if ($settings['collapsible']) {
-      $summary_elements[] = t('Collapsible');
-    }
-    $summary_elements[] = t('Event: @event', array('@event' => $settings['event']));
-    $summary = implode(', ', $summary_elements);
+  switch($display['type']) {
+    case 'faqfield_accordion':
+      $summary_elements = array();
+      if ($settings['active'] !== '') {
+        $summary_elements[] = t('Active: @element', array('@element' => $settings['active']));
+      }
+      if ($settings['autoHeight']) {
+        $summary_elements[] = t('Auto height');
+      }
+      if ($settings['collapsible']) {
+        $summary_elements[] = t('Collapsible');
+      }
+      $summary_elements[] = t('Event: @event', array('@event' => $settings['event']));
+      $summary = implode(', ', $summary_elements);
+      break;
+
+    case 'faqfield_anchor_list':
+      $summary_elements = array();
+      if ($settings['anchor-list-type'] == 'ul') {
+        $summary_elements[] = t('Bullet list');
+      }
+      else {
+        $summary_elements[] = t('Numeric list');
+      }
+      $summary = implode(', ', $summary_elements);
+      break;
+
   }
 
   return $summary;
@@ -220,41 +234,58 @@ function faqfield_field_formatter_settings_form($field, $instance, $view_mode, $
   $settings = $display['settings'];
 
   // Accordion display settings.
-  if ($display['type'] === 'faqfield_accordion') {
-    // Number of first active element.
-    $element['active'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Active'),
-      '#default_value' => $settings['active'],
-      '#description' => t('Index of active element starting from 0. Leave empty to display none at start.'),
-      // @TODO _element_validate_number() is deprecated since 7.8.
-      '#element_validate' => array(function_exists('element_validate_number') ? 'element_validate_number' : '_element_validate_number'),
-      '#maxlength' => 3,
-      '#size' => 5,
-    );
-    // Whether auto heigth is enabled.
-    $element['autoHeight'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Auto height'),
-      '#default_value' => $settings['autoHeight'],
-      '#description' => t('If set, the highest content part is used as height reference for all other parts. Provides more consistent animations.'),
-    );
-    // Whether elements are collabsible.
-    $element['collapsible'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Collapsible'),
-      '#default_value' => $settings['collapsible'],
-      '#description' => t('Whether an opened question can be collapsed (by the triggering event).'),
-    );
-    // Name of triggering event.
-    $element['event'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Event'),
-      '#default_value' => $settings['event'],
-      '#description' => t('The event on which to trigger the accordion.'),
-      '#maxlength' => 10,
-    );
-  }
+  switch ($display['type']) {
+    case 'faqfield_accordion':
+      // Number of first active element.
+      $element['active'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Active'),
+        '#default_value' => $settings['active'],
+        '#description' => t('Index of active element starting from 0. Leave empty to display none at start.'),
+        // @TODO _element_validate_number() is deprecated since 7.8.
+        '#element_validate' => array(function_exists('element_validate_number') ? 'element_validate_number' : '_element_validate_number'),
+        '#maxlength' => 3,
+        '#size' => 5,
+      );
+      // Whether auto heigth is enabled.
+      $element['autoHeight'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Auto height'),
+        '#default_value' => $settings['autoHeight'],
+        '#description' => t('If set, the highest content part is used as height reference for all other parts. Provides more consistent animations.'),
+      );
+      // Whether elements are collabsible.
+      $element['collapsible'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Collapsible'),
+        '#default_value' => $settings['collapsible'],
+        '#description' => t('Whether an opened question can be collapsed (by the triggering event).'),
+      );
+      // Name of triggering event.
+      $element['event'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Event'),
+        '#default_value' => $settings['event'],
+        '#description' => t('The event on which to trigger the accordion.'),
+        '#maxlength' => 10,
+      );
+      break;
+
+    case 'faqfield_anchor_list':
+      // Input for the count of rows for the answer field.
+      $element['anchor-list-type'] = array(
+        '#type' => 'select',
+        '#title' => t('Anchor link list type'),
+        '#default_value' => $settings['anchor-list-type'],
+        '#options' => array(
+          'ul' => t('<ul> - Bullet list'),
+          'ol' => t('<ol> - Numeric list'),
+        ),
+        '#description' => t('The type of HTML list used for the anchor link list.'),
+      );
+      break;
+
+    }
   return $element;
 }
 
@@ -276,8 +307,21 @@ function faqfield_field_formatter_info() {
     ),
     // This formatter just displays the FAQ content as simple text.
     'faqfield_simple_text' => array(
-      'label' => t('Simple text'),
+      'label' => t('Simple text (themeable)'),
       'field types' => array('faqfield'),
+    ),
+    // This formatter displays the FAQ content as definition list.
+    'faqfield_definition_list' => array(
+      'label' => t('Definition list'),
+      'field types' => array('faqfield'),
+    ),
+    // This formatter displays the FAQ content as anchors and text.
+    'faqfield_anchor_list' => array(
+      'label' => t('Anchor list and text'),
+      'field types' => array('faqfield'),
+      'settings' => array(
+        'anchor-list-type' => 'ul',
+      ),
     ),
   );
 }
@@ -346,6 +390,38 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
       }
       break;
 
+    // This formatter displays the FAQ content as definition list.
+    case 'faqfield_definition_list':
+      $element[0]['#markup'] = '<dl class="faqfield-definition-list">';
+      foreach ($items as $item) {
+        // Decide whether to use the default format or the custom one.
+        $format = (!empty($item['answer_format']) ? $item['answer_format'] : $field['settings']['format']);
+        // Build the markup.
+        $element[0]['#markup'] .= '<dt class="faqfield-question">' . check_plain($item['question']) . '</dt>';
+        $element[0]['#markup'] .= '<dd class="faqfield-answer">' . check_markup($item['answer'], $format) . '</dd>';
+      }
+      $element[0]['#markup'] .= '</dl>';
+      break;
+
+    // This formatter displays the FAQ content as anchors and text.
+    case 'faqfield_anchor_list':
+      $element[0]['#markup'] = '<div class="faqfield-anchor-list"><' . $display['settings']['anchor-list-type'] . '>';
+      foreach ($items as $item) {
+        // Build the anchor link list.
+        $name = 'faq-' . check_plain(str_replace(' ', '-',$item['question']));
+        $element[0]['#markup'] .= '<li><a href="#' . $name . '">' . check_plain($item['question']) . '</a></li>';
+      }
+      $element[0]['#markup'] .= '</' . $display['settings']['anchor-list-type'] . '>';
+      foreach ($items as $item) {
+        // Decide whether to use the default format or the custom one.
+        $format = (!empty($item['answer_format']) ? $item['answer_format'] : $field['settings']['format']);
+        // Build the markup.
+        $name = 'faq-' . check_plain(str_replace(' ', '-',$item['question']));
+        $element[0]['#markup'] .= '<h3 class="faqfield-question"><a href="#' . $name . '" name="' . $name . '">' . check_plain($item['question']) . '</a></h3>';
+        $element[0]['#markup'] .= '<div class="faqfield-answer">' . check_markup($item['answer'], $format) . '</div>';
+      }
+      $element[0]['#markup'] .= '</div>';
+      break;
   }
   return $element;
 }
