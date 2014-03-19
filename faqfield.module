@@ -399,9 +399,6 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
       $entity_ids = entity_extract_ids($entity_type, $entity);
       $faqfield_id = 'faqfield_' . $field['field_name'] . '_' . $entity_ids[0];
 
-      // Add jQuery UI accordion library.
-      drupal_add_library('system', 'ui.accordion');
-      drupal_add_js('jQuery(function(){jQuery("#' . $faqfield_id . '").accordion(Drupal.settings.' . $faqfield_id . ');});', 'inline');
       // We need to convert the element active value to an integer for jQuery.
       if ($display['settings']['active'] !== '') {
         settype($display['settings']['active'], 'int');
@@ -410,8 +407,13 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
       else {
         $display['settings']['active'] = FALSE;
       }
-      // Set accordion display settings.
-      drupal_add_js(array($faqfield_id => $display['settings']), 'setting');
+
+      // Attach accordion JS library and related display settings.
+      $element[0]['#attached']['library'][] = array('faqfield', 'accordion');
+      $element[0]['#attached']['js'][] = array(
+        'type' => 'setting',
+        'data' => array('faqfield' => array('#' . $faqfield_id => $display['settings'])),
+      );
 
       // We need to put all of this within a single piece of markup,
       // otherwise this would not work with jQuery accordion.
@@ -489,6 +491,24 @@ function faqfield_theme() {
         'question' => NULL,
         'answer'   => NULL,
         'delta'    => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_library().
+ */
+function faqfield_library() {
+  return array(
+    'accordion' => array(
+      'title' => 'FAQField Accordion',
+      'version' => '1.2',
+      'js' => array(
+        drupal_get_path('module', 'faqfield') . '/js/faqfield.accordion.js' => array(),
+      ),
+      'dependencies' => array(
+        array('system', 'ui.accordion'),
       ),
     ),
   );
