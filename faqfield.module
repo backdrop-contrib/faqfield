@@ -680,3 +680,32 @@ function faqfield_help($path, $arg) {
       return $output;
   }
 }
+
+/**
+ * Implements hook_tmgmt_source_translation_structure().
+ */
+function faqfield_tmgmt_source_translation_structure($entity_type, $entity, $field, $instance, $langcode, $items) {
+  $structure = array();
+  if (!empty($items)) {
+    $structure['#label'] = check_plain($instance['label']);
+    foreach ($items as $delta => $value) {
+      $structure[$delta]['#label'] = t('Delta #@delta', array('@delta' => $delta));
+      $structure[$delta]['question'] = array(
+        '#label' => check_plain($field['settings']['advanced']['question_title']),
+        '#text' => $value['question'],
+        '#translate' => TRUE,
+      );
+      $structure[$delta]['answer_format'] = array(
+        '#label' => '',
+        '#text' => $value['answer_format'],
+        '#translate' => FALSE,
+      );
+      $structure[$delta]['answer'] = array(
+        '#label' => check_plain($field['settings']['advanced']['answer_title']),
+        '#text' => $value['answer'],
+        '#translate' => TRUE,
+      );
+    }
+  }
+  return $structure;
+}
