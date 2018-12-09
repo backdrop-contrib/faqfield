@@ -5,6 +5,9 @@
  * Provides a field for frequently asked questions.
  */
 
+// Add script for remove button.
+drupal_add_js(drupal_get_path('module', 'faqfield') . '/js/faqfield.remove.js');
+
 /**
  * Returns HTML for a faqfield formatter.
  *
@@ -561,6 +564,13 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
         // We choose the source output format depending on the input type.
         '#format' => ($field['settings']['answer_widget'] == 'text_format') ? @$items[$delta]['answer_format'] : $field['settings']['format'],
         '#rows' => $field['settings']['advanced']['answer_rows'],
+      ) + $base;
+    $element['remove'] = array(
+        '#value' => t('Remove'),
+        '#type' => 'submit',
+        '#prefix' => '<p class="faqfield-remove-button">',
+        '#suffix' => '</p>',
+        '#weight' => 2,
       ) + $base;
   }
   return $element;
