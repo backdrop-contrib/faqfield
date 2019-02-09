@@ -444,14 +444,34 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
       }
       break;
 
-    // This formatter displays the FAQ content as definition list.
+    /*
+     * This formatter displays the FAQ content as definition list, and has been
+     * updated with the addition of accordion functionality.
+     *
+     * Taken from the Web Accessibility for Developers course offered by
+     * The Chang School at Ryerson University, for details see:
+     * https://www.canvas.net/browse/ryersonu/courses/adv-web-accessibility
+     */
     case 'faqfield_definition_list':
-      $element[0]['#markup'] = '<dl class="faqfield-definition-list">';
+      drupal_add_js(
+        drupal_get_path('module', 'faqfield') . '/js/faqfield.accordion_dl.js',
+        array(
+          'scope' => 'header',
+          'weight' => 51,
+        )
+      );
+      drupal_add_css(
+        drupal_get_path('module', 'faqfield') . '/css/faqfield.accordion_dl.css'
+      );
+
+      // Need to add "multiselect" class to work with above javascript.
+      $element[0]['#markup'] = '<dl class="faqfield-definition-list multiselect">';
       foreach ($items as $item) {
         // Decide whether to use the default format or the custom one.
         $format = (!empty($item['answer_format']) ? $item['answer_format'] : $field['settings']['format']);
-        // Build the markup.
-        $element[0]['#markup'] .= '<dt class="faqfield-question">' . check_plain($item['question']) . '</dt>';
+        // Build the markup; adding aria-hidden span with target inside to allow
+        // for designers to target with text or graphic open/close indicators.
+        $element[0]['#markup'] .= '<dt class="faqfield-question"><span class="indicator" aria-hidden="true"><span class="indicator-target"></span></span>' . check_plain($item['question']) . '</dt>';
         $element[0]['#markup'] .= '<dd class="faqfield-answer">' . check_markup($item['answer'], $format) . '</dd>';
       }
       $element[0]['#markup'] .= '</dl>';

@@ -1,0 +1,110 @@
+/*
+ * Taken from the Web Accessibility for Developers course offered by
+ * The Chang School at Ryerson University, for details see:
+ * https://www.canvas.net/browse/ryersonu/courses/adv-web-accessibility
+ */
+@charset "utf-8";
+.accordion_dl {
+  margin: 10px 0;
+  padding: 0;
+}
+.accordion_dl dt {
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+.accordion_dl dt .button {
+  padding: 10px 10px 10px 30px;
+  background-color: #dddddd;
+  color: #000000;
+  -webkit-box-shadow: inset -1px -1px 0 rgba(0, 0, 0, 0.25), inset 1px 1px 0 rgba(255, 255, 255, 0.25);
+  -moz-box-shadow: inset -1px -1px 0 rgba(0, 0, 0, 0.25), inset 1px 1px 0 rgba(255, 255, 255, 0.25);
+  box-shadow: inset -1px -1px 0 rgba(0, 0, 0, 0.25), inset 1px 1px 0 rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.accordion_dl dt .button .indicator .indicator-target:before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  width: 5px;
+  height: 5px;
+  margin-top: -4px;
+  border-top: 2px solid #000000;
+  border-right: 2px solid #000000;
+  transform: rotateZ(45deg);
+  transition: transform .2s ease;
+}
+.accordion_dl dt .button.expanded {
+  background-color: #eeeeee;
+}
+.accordion_dl dt .button.expanded .indicator .indicator-target:before {
+  transform: rotateZ(135deg);
+}
+.accordion_dl dt .button:hover,
+.accordion_dl dt .button:focus {
+  background-color: #eeeeee;
+}
+.accordion_dl dt:first-of-type .button {
+  -webkit-border-top-left-radius: 6px;
+  -webkit-border-top-right-radius: 6px;
+  -webkit-border-bottom-left-radius: 0;
+  -webkit-border-bottom-right-radius: 0;
+  -moz-border-radius-topleft: 6px;
+  -moz-border-radius-topright: 6px;
+  -moz-border-radius-bottomleft: 0;
+  -moz-border-radius-bottomright: 0;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.accordion_dl dt:last-of-type .button {
+  -webkit-border-top-left-radius: 0;
+  -webkit-border-top-right-radius: 0;
+  -webkit-border-bottom-left-radius: 6px;
+  -webkit-border-bottom-right-radius: 6px;
+  -moz-border-radius-topleft: 0;
+  -moz-border-radius-topright: 0;
+  -moz-border-radius-bottomleft: 6px;
+  -moz-border-radius-bottomright: 6px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+.accordion_dl dt:last-of-type .button.expanded {
+  -webkit-border-top-left-radius: 0;
+  -webkit-border-top-right-radius: 0;
+  -webkit-border-bottom-left-radius: 0;
+  -webkit-border-bottom-right-radius: 0;
+  -moz-border-radius-topleft: 0;
+  -moz-border-radius-topright: 0;
+  -moz-border-radius-bottomleft: 0;
+  -moz-border-radius-bottomright: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.accordion_dl dd {
+  margin: -1px 0;
+  padding: 10px;
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+}
+.accordion_dl dd:last-of-type {
+  -webkit-border-top-left-radius: 0;
+  -webkit-border-top-right-radius: 0;
+  -webkit-border-bottom-left-radius: 6px;
+  -webkit-border-bottom-right-radius: 6px;
+  -moz-border-radius-topleft: 0;
+  -moz-border-radius-topright: 0;
+  -moz-border-radius-bottomleft: 6px;
+  -moz-border-radius-bottomright: 6px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
