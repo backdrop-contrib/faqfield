@@ -418,7 +418,7 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
         // Store the raw anchor name so the accordion item can be unfurled.
         $anchors[$name] = $key;
         $name = check_plain($name);
-        $element[0]['#markup'] .= '<h3 class="faqfield-question"><a name="' . $name . '" href="#' . $name . '">' . check_plain($item['question']) . '</a></h3>';
+        $element[0]['#markup'] .= '<h3 class="faqfield-question" id="' . $name . '"><a href="#' . $name . '">' . check_plain($item['question']) . '</a></h3>';
         $element[0]['#markup'] .= '<div class="faqfield-answer">' . check_markup($item['answer'], $format) . '</div>';
       }
       $element[0]['#markup'] .= '</div>';
@@ -485,7 +485,7 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
         $name = 'faq-' . check_plain(str_replace(' ', '-', $item['question']));
         $element[0]['#markup'] .= '<li><a href="#' . $name . '">' . check_plain($item['question']) . '</a></li>';
         // Build the answer text markup.
-        $answers_markup .= '<h3 class="faqfield-question"><a href="#' . $name . '" name="' . $name . '">' . check_plain($item['question']) . '</a></h3>';
+        $answers_markup .= '<h3 class="faqfield-question" id="' . $name . '"><a href="#' . $name . '">' . check_plain($item['question']) . '</a></h3>';
         // Decide whether to use the default format or the custom one.
         $format = (!empty($item['answer_format']) ? $item['answer_format'] : $field['settings']['format']);
         $answers_markup .= '<div class="faqfield-answer">' . check_markup($item['answer'], $format) . '</div>';
