@@ -35,6 +35,4 @@ Configuration
 
 Credits
 -------
-Initially created for Drupal by Patrick Drotleff (patrickd)).
-
-Ported to Backdrop by [Alan Mels](https://github.com/alanmels) of [AltaGrade.com](https://github.com/altagrade) - a Backdrop specific web, cloud and dedicated hosting provider.
+Initially created for Drupal by [Patrick Drotleff](https://github.com/patrickd-) ported to Backdrop by [Alan Mels](https://github.com/alanmels) of [AltaGrade.com](https://github.com/altagrade) - a Backdrop specific web, cloud and dedicated hosting provider.
