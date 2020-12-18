@@ -223,7 +223,7 @@
   /**
    * Add faqfield accordion behaviour for definition lists.
    */
-  Drupal.behaviors.faqfieldAccordionDl = {
+  Backdrop.behaviors.faqfieldAccordionDl = {
     attach: function (context) {
       $('.faqfield-definition-list', context).once('accordion', function () {
           var autoCollapse = false;
@@ -235,4 +235,3 @@
     }
   };
 })(jQuery);
-

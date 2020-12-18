@@ -6,7 +6,7 @@
  */
 
 // Add script for remove button.
-drupal_add_js(drupal_get_path('module', 'faqfield') . '/js/faqfield.remove.js');
+backdrop_add_js(backdrop_get_path('module', 'faqfield') . '/js/faqfield.remove.js');
 
 /**
  * Returns HTML for a faqfield formatter.
@@ -34,7 +34,7 @@ function faqfield_field_info() {
       'label' => t('FAQ Field'),
       'description' => t('Field for frequently asked questions.'),
       'default_widget' => 'faqfield_textboxes',
-      'default_formatter' => 'faqfield_accordion',
+      'default_formatter' => 'faqfield_definition_list',
       // Set the default field settings.
       'settings' => array(
         'answer_widget' => 'textarea',
@@ -206,7 +206,13 @@ function faqfield_field_settings_form($field, $instance, $has_data) {
     '#type' => 'select',
     '#title' => t('Answer rows'),
     '#default_value' => @$field['settings']['advanced']['answer_rows'],
-    '#options' => array(1 => '1', 2 => '2', 3 => '3', 4 => '4', 5 => '5'),
+    '#options' => array(
+      1 => '1',
+      2 => '2',
+      3 => '3',
+      4 => '4',
+      5 => '5',
+    ),
     '#required' => TRUE,
     '#description' => t('Number of rows used for the answer textarea.'),
     '#states' => array(
@@ -250,7 +256,7 @@ function faqfield_field_formatter_settings_summary($field, $instance, $view_mode
       $summary_elements[] = t('Event: @event', array('@event' => $settings['event']));
       $summary = implode(', ', $summary_elements);
       break;
-    // Anchor list formatter settings.
+      // Anchor list formatter settings.
     case 'faqfield_anchor_list':
       $summary_elements = array();
       if ($settings['anchor-list-type'] == 'ul') {
@@ -309,7 +315,7 @@ function faqfield_field_formatter_settings_form($field, $instance, $view_mode, $
         '#maxlength' => 10,
       );
       break;
-    // Anchor list formatter settings.
+      // Anchor list formatter settings.
     case 'faqfield_anchor_list':
       // Input for the count of rows for the answer field.
       $element['anchor-list-type'] = array(
@@ -343,16 +349,6 @@ function faqfield_field_formatter_info() {
         'event' => 'click',
       ),
     ),
-    // This formatter just displays the FAQ content as simple text.
-    'faqfield_simple_text' => array(
-      'label' => t('Simple text (themeable)'),
-      'field types' => array('faqfield'),
-    ),
-    // This formatter displays the FAQ content as definition list.
-    'faqfield_definition_list' => array(
-      'label' => t('Definition list'),
-      'field types' => array('faqfield'),
-    ),
     // This formatter displays the FAQ content as anchors and text.
     'faqfield_anchor_list' => array(
       'label' => t('Anchor list and text'),
@@ -360,6 +356,16 @@ function faqfield_field_formatter_info() {
       'settings' => array(
         'anchor-list-type' => 'ul',
       ),
+    ),
+    // This formatter displays the FAQ content as definition list.
+    'faqfield_definition_list' => array(
+      'label' => t('Definition list'),
+      'field types' => array('faqfield'),
+    ),
+    // This formatter just displays the FAQ content as simple text.
+    'faqfield_simple_text' => array(
+      'label' => t('Simple text (themeable)'),
+      'field types' => array('faqfield'),
     ),
   );
 }
@@ -392,6 +398,7 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
       // If jquery_update module is installed and a version >1.5 is used
       // the "autoHeight" option has been replaced with "heightStyle".
       // To be compatible to higher jQuery versions we have to switch accordingly.
+      // TODO This variable was probably removed in Backdrop without replacement.
       if (module_exists('jquery_update') && variable_get('jquery_update_jquery_version') !== '1.5') {
         if ($display['settings']['autoHeight']) {
           $display['settings']['heightStyle'] = 'auto';
@@ -428,7 +435,7 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
       );
       break;
 
-    // This themeable formatter displays the FAQ content as simple text.
+      // This themeable formatter displays the FAQ content as simple text.
     case 'faqfield_simple_text':
       foreach ($items as $delta => $item) {
         // Decide whether to use the default format or the custom one.
@@ -444,24 +451,24 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
       }
       break;
 
-    /*
-     * This formatter displays the FAQ content as definition list, and has been
-     * updated with the addition of accordion functionality.
-     *
-     * Taken from the Web Accessibility for Developers course offered by
-     * The Chang School at Ryerson University, for details see:
-     * https://www.canvas.net/browse/ryersonu/courses/adv-web-accessibility
-     */
+      /*
+       * This formatter displays the FAQ content as definition list, and has been
+       * updated with the addition of accordion functionality.
+       *
+       * Taken from the Web Accessibility for Developers course offered by
+       * The Chang School at Ryerson University, for details see:
+       * https://www.canvas.net/browse/ryersonu/courses/adv-web-accessibility
+       */
     case 'faqfield_definition_list':
-      drupal_add_js(
-        drupal_get_path('module', 'faqfield') . '/js/faqfield.accordion_dl.js',
+      backdrop_add_js(
+        backdrop_get_path('module', 'faqfield') . '/js/faqfield.accordion_dl.js',
         array(
-          'scope' => 'header',
-          'weight' => 51,
-        )
+        'scope' => 'header',
+        'weight' => 51,
+      )
       );
-      drupal_add_css(
-        drupal_get_path('module', 'faqfield') . '/css/faqfield.accordion_dl.css'
+      backdrop_add_css(
+        backdrop_get_path('module', 'faqfield') . '/css/faqfield.accordion_dl.css'
       );
 
       // Need to add "multiselect" class to work with above javascript.
@@ -476,7 +483,7 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
       }
       $element[0]['#markup'] .= '</dl>';
       break;
-    // This formatter displays the FAQ content as anchors and text.
+      // This formatter displays the FAQ content as anchors and text.
     case 'faqfield_anchor_list':
       $element[0]['#markup'] = '<div class="faqfield-anchor-list"><' . $display['settings']['anchor-list-type'] . '>';
       $answers_markup = '';
@@ -523,7 +530,7 @@ function faqfield_library() {
       'title' => 'FAQField Accordion',
       'version' => '1.2',
       'js' => array(
-        drupal_get_path('module', 'faqfield') . '/js/faqfield.accordion.js' => array(),
+        backdrop_get_path('module', 'faqfield') . '/js/faqfield.accordion.js' => array(),
       ),
       'dependencies' => array(
         array('system', 'ui.accordion'),
@@ -566,32 +573,32 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
     }
     // Add textfield for question.
     $element['question'] = array(
-        '#title' => check_plain($field['settings']['advanced']['question_title']),
-        '#type' => (@$field['settings']['advanced']['question_rows'] > 1) ? 'textarea' : 'textfield',
-        '#default_value' => @$items[$delta]['question'],
-        '#maxlength' => $field['settings']['advanced']['question_length'],
-        '#delta' => $delta,
-        '#weight' => 0,
-        '#rows' => @$field['settings']['advanced']['question_rows'],
-      ) + $base;
+      '#title' => check_plain($field['settings']['advanced']['question_title']),
+      '#type' => (@$field['settings']['advanced']['question_rows'] > 1) ? 'textarea' : 'textfield',
+      '#default_value' => @$items[$delta]['question'],
+      '#maxlength' => $field['settings']['advanced']['question_length'],
+      '#delta' => $delta,
+      '#weight' => 0,
+      '#rows' => @$field['settings']['advanced']['question_rows'],
+    ) + $base;
     // Add textarea / formatable textarea / textfield for answer.
     $element['answer'] = array(
-        '#title' => check_plain($field['settings']['advanced']['answer_title']),
-        '#type' => $field['settings']['answer_widget'],
-        '#default_value' => @$items[$delta]['answer'],
-        '#delta' => $delta,
-        '#weight' => 1,
-        // We choose the source output format depending on the input type.
-        '#format' => ($field['settings']['answer_widget'] == 'text_format') ? @$items[$delta]['answer_format'] : $field['settings']['format'],
-        '#rows' => $field['settings']['advanced']['answer_rows'],
-      ) + $base;
+      '#title' => check_plain($field['settings']['advanced']['answer_title']),
+      '#type' => $field['settings']['answer_widget'],
+      '#default_value' => @$items[$delta]['answer'],
+      '#delta' => $delta,
+      '#weight' => 1,
+      // We choose the source output format depending on the input type.
+      '#format' => ($field['settings']['answer_widget'] == 'text_format') ? @$items[$delta]['answer_format'] : $field['settings']['format'],
+      '#rows' => $field['settings']['advanced']['answer_rows'],
+    ) + $base;
     $element['remove'] = array(
-        '#value' => t('Remove'),
-        '#type' => 'submit',
-        '#prefix' => '<p class="faqfield-remove-button">',
-        '#suffix' => '</p>',
-        '#weight' => 2,
-      ) + $base;
+      '#value' => t('Remove'),
+      '#type' => 'submit',
+      '#prefix' => '<p class="faqfield-remove-button">',
+      '#suffix' => '</p>',
+      '#weight' => 2,
+    ) + $base;
   }
   return $element;
 }

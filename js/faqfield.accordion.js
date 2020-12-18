@@ -7,7 +7,7 @@
   /**
    * Add faqfield accordion behaviour.
    */
-  Drupal.behaviors.faqfieldAccordion = {
+  Backdrop.behaviors.faqfieldAccordion = {
     attach: function (context, settings) {
       if (settings.faqfield != undefined) {
         // Bind the accordion to any defined faqfield accordion formatter with
