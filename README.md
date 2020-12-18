@@ -1,9 +1,7 @@
 Description
 -----------
 
-FAQ Field
-
-This module provides a field for frequently asked questions.
+FAQ Field module provides a field for frequently asked questions.
 Added, you can create simple but smooth FAQs on any piece of content.
 
 
@@ -11,6 +9,7 @@ Installation
 -------------
 
 Install as usual, see https://backdropcms.org/user-guide/modules for further information.
+
 Alternatively, if you have [Brush](https://github.com/backdrop-contrib/brush) installed, then just run on CLI:
 ```
 brush -y en faqfield
