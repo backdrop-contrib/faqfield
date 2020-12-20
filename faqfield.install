@@ -32,12 +32,3 @@ function faqfield_field_schema($field) {
     ),
   );
 }
-
-// TODO The old hook_update_N functions cannot be applied to Backdrop.
-function faqfield_update_7110() { }
-
-// TODO The old hook_update_N functions cannot be applied to Backdrop.
-function faqfield_update_7120() { }
-
-// TODO The old hook_update_N functions cannot be applied to Backdrop.
-function faqfield_update_7130() { }
