@@ -241,21 +241,6 @@ function faqfield_field_formatter_settings_summary($field, $instance, $view_mode
   $settings = $display['settings'];
   $summary = '';
   switch ($display['type']) {
-    // Accordion display settings summary.
-    case 'faqfield_accordion':
-      $summary_elements = array();
-      if ($settings['active'] !== '') {
-        $summary_elements[] = t('Active: @element', array('@element' => $settings['active']));
-      }
-      if ($settings['autoHeight']) {
-        $summary_elements[] = t('Auto height');
-      }
-      if ($settings['collapsible']) {
-        $summary_elements[] = t('Collapsible');
-      }
-      $summary_elements[] = t('Event: @event', array('@event' => $settings['event']));
-      $summary = implode(', ', $summary_elements);
-      break;
       // Anchor list formatter settings.
     case 'faqfield_anchor_list':
       $summary_elements = array();
@@ -279,42 +264,6 @@ function faqfield_field_formatter_settings_form($field, $instance, $view_mode, $
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
   switch ($display['type']) {
-    // Accordion display settings.
-    case 'faqfield_accordion':
-      // Number of first active element.
-      $element['active'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Active'),
-        '#default_value' => $settings['active'],
-        '#description' => t('Index of active element starting from 0. Leave empty to display none at start.'),
-        // @TODO _element_validate_number() is deprecated since 7.8.
-        '#element_validate' => array(function_exists('element_validate_number') ? 'element_validate_number' : '_element_validate_number'),
-        '#maxlength' => 3,
-        '#size' => 5,
-      );
-      // Whether auto heigth is enabled.
-      $element['autoHeight'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Auto height'),
-        '#default_value' => $settings['autoHeight'],
-        '#description' => t('If set, the highest content part is used as height reference for all other parts. Provides more consistent animations.'),
-      );
-      // Whether elements are collabsible.
-      $element['collapsible'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Collapsible'),
-        '#default_value' => $settings['collapsible'],
-        '#description' => t('Whether an opened question can be collapsed (by the triggering event).'),
-      );
-      // Name of triggering event.
-      $element['event'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Event'),
-        '#default_value' => $settings['event'],
-        '#description' => t('The event on which to trigger the accordion.'),
-        '#maxlength' => 10,
-      );
-      break;
       // Anchor list formatter settings.
     case 'faqfield_anchor_list':
       // Input for the count of rows for the answer field.
@@ -338,17 +287,6 @@ function faqfield_field_formatter_settings_form($field, $instance, $view_mode, $
  */
 function faqfield_field_formatter_info() {
   return array(
-    // This formatter uses jQuery accordion widget.
-    'faqfield_accordion' => array(
-      'label' => t('Accordion'),
-      'field types' => array('faqfield'),
-      'settings' => array(
-        'active' => 0,
-        'autoHeight' => TRUE,
-        'collapsible' => FALSE,
-        'event' => 'click',
-      ),
-    ),
     // This formatter displays the FAQ content as anchors and text.
     'faqfield_anchor_list' => array(
       'label' => t('Anchor list and text'),
@@ -380,61 +318,6 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
     return $element;
   }
   switch ($display['type']) {
-    // This formatter adds jQuery accordion widget.
-    // This will not be themeable, because changes would break
-    // jQuery UI accordion functionality!
-    case 'faqfield_accordion':
-      // Generate faqfield id by fieldname and entity id.
-      $entity_ids = entity_extract_ids($entity_type, $entity);
-      $faqfield_id = 'faqfield_' . $field['field_name'] . '_' . $entity_ids[0];
-      // We need to convert the element active value to an integer for jQuery.
-      if ($display['settings']['active'] !== '') {
-        settype($display['settings']['active'], 'int');
-      }
-      // If setting was left blank, we set FALSE so no element will be active.
-      else {
-        $display['settings']['active'] = FALSE;
-      }
-      // If jquery_update module is installed and a version >1.5 is used
-      // the "autoHeight" option has been replaced with "heightStyle".
-      // To be compatible to higher jQuery versions we have to switch accordingly.
-      // TODO This variable was probably removed in Backdrop without replacement.
-      if (module_exists('jquery_update') && variable_get('jquery_update_jquery_version') !== '1.5') {
-        if ($display['settings']['autoHeight']) {
-          $display['settings']['heightStyle'] = 'auto';
-        }
-        else {
-          $display['settings']['heightStyle'] = 'content';
-        }
-        unset($display['settings']['autoHeight']);
-      }
-      // Attach accordion JS library and related display settings.
-      $element[0]['#attached']['library'][] = array('faqfield', 'accordion');
-      $element[0]['#attached']['js'][] = array(
-        'type' => 'setting',
-        'data' => array('faqfield' => array('#' . $faqfield_id => $display['settings'])),
-      );
-      // We need to put all of this within a single piece of markup,
-      // otherwise this would not work with jQuery accordion.
-      $element[0]['#markup'] = '<div id="' . $faqfield_id . '">';
-      foreach ($items as $key => $item) {
-        // Decide whether to use the default format or the custom one.
-        $format = (!empty($item['answer_format']) ? $item['answer_format'] : $field['settings']['format']);
-        // Build the markup.
-        $name = 'faq-' . str_replace(' ', '-', $item['question']);
-        // Store the raw anchor name so the accordion item can be unfurled.
-        $anchors[$name] = $key;
-        $name = check_plain($name);
-        $element[0]['#markup'] .= '<h3 class="faqfield-question" id="' . $name . '"><a href="#' . $name . '">' . check_plain($item['question']) . '</a></h3>';
-        $element[0]['#markup'] .= '<div class="faqfield-answer">' . check_markup($item['answer'], $format) . '</div>';
-      }
-      $element[0]['#markup'] .= '</div>';
-      $element[0]['#attached']['js'][] = array(
-        'type' => 'setting',
-        'data' => array('faqfieldAnchors' => $anchors),
-      );
-      break;
-
       // This themeable formatter displays the FAQ content as simple text.
     case 'faqfield_simple_text':
       foreach ($items as $delta => $item) {
@@ -450,15 +333,6 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
         );
       }
       break;
-
-      /*
-       * This formatter displays the FAQ content as definition list, and has been
-       * updated with the addition of accordion functionality.
-       *
-       * Taken from the Web Accessibility for Developers course offered by
-       * The Chang School at Ryerson University, for details see:
-       * https://www.canvas.net/browse/ryersonu/courses/adv-web-accessibility
-       */
     case 'faqfield_definition_list':
       backdrop_add_js(
         backdrop_get_path('module', 'faqfield') . '/js/faqfield.accordion_dl.js',
@@ -521,23 +395,6 @@ function faqfield_theme() {
   );
 }
 
-/**
- * Implements hook_library().
- */
-function faqfield_library() {
-  return array(
-    'accordion' => array(
-      'title' => 'FAQField Accordion',
-      'version' => '1.2',
-      'js' => array(
-        backdrop_get_path('module', 'faqfield') . '/js/faqfield.accordion.js' => array(),
-      ),
-      'dependencies' => array(
-        array('system', 'ui.accordion'),
-      ),
-    ),
-  );
-}
 
 /**
  * Implements hook_field_widget_info().
@@ -671,29 +528,6 @@ function faqfield_field_presave($entity_type, $entity, $field, $instance, $langc
         }
       }
     }
-  }
-}
-
-/**
- * Implements hook_help().
- *
- * Dirty looking stuff comes in the end.. does actually anyone needs this?
- */
-function faqfield_help($path, $arg) {
-  switch ($path) {
-    case 'admin/help#faqfield':
-      $output = '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t('This module provides a field for frequently asked questions. Added, you can create simple but smooth FAQs on any piece of content.') . '</p>';
-      $output .= '<h3>' . t('Usage') . '</h3>';
-      $output .= '<dl>';
-      $output .= '<dt>' . t('Configuration') . '</dt>';
-      $output .= '<dd>' . t("No configuration needed.") . '</dd>';
-      $output .= '<dt>' . t('How to use') . '</dt>';
-      $output .= '<dd>' . t("You can add the field to any entity (eg. content type, users, ..) as usual. After you applied the field you have to configure how its output should be filtered (eg. Filtered HTML, Plain Text). Also it is recommended to set the number of values to unlimited.") . '</dd>';
-      $output .= '<dt>' . t('Formatters') . '</dt>';
-      $output .= '<dd>' . t("You have the choise of two display formatters: jQuery accordion (animated show / hide) and simple text (none formatted, simple output for custom theming). If you are using accordion you can modify its behaviour easily by the display settings.") . '</dd>';
-      $output .= '</dl>';
-      return $output;
   }
 }
 
