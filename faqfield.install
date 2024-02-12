@@ -32,12 +32,3 @@ function faqfield_field_schema($field) {
     ),
   );
 }
-
-/**
- * Implements hook_uninstall().
- */
-function faqfield_uninstall() {
-  #config('field.field.field_faq')->delete();
-  #config('field.instance.node.page.field_faq')->delete();
-  #field_attach_delete_bundle('node', 'faqfield');
-}
