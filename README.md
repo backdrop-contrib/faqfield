@@ -27,6 +27,17 @@ You can choose from various display formatters including:
 
 If employing the accordion format, you can easily adjust its behavior via the display settings.
 
+## Current Maintainers
+
+- [Alan Mels](https://github.com/alanmels).
+- Seeking additional maintainers.
+
 Credits
 -------
-Originally developed for Drupal by [Patrick Drotleff](https://github.com/patrickd-), the module has been ported to Backdrop by [Alan Mels](https://github.com/alanmels) from [AltaGrade.com](https://github.com/altagrade) – a dedicated hosting provider specializing in Backdrop-specific web and cloud services.
+- Ported to Backdrop CMS by [Alan Mels](https://github.com/alanmels)
+- Originally developed for Drupal by [Patrick Drotleff](https://github.com/patrickd-)
+
+## License
+
+This project is GPL v2 software. 
+See the LICENSE.txt file in this directory for complete text.
