@@ -22,7 +22,7 @@ You can choose from various display formatters including:
 
 - Accordion (jQuery JavaScript animated show/hide)
 - Simple text (unformatted output suitable for custom theming)
-- Definition list (typical <dl> FAQ format)
+- Definition list (typical &#60;dl&#62; FAQ format)
 - Anchor list (FAQ with anchor link navigation)
 
 If employing the accordion format, you can easily adjust its behavior via the display settings.
