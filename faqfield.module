@@ -31,7 +31,7 @@ function faqfield_field_info() {
       'label' => t('FAQ Field'),
       'description' => t('Field for frequently asked questions.'),
       'default_widget' => 'faqfield_textboxes',
-      'default_formatter' => 'faqfield_definition_list',
+      'default_formatter' => 'faqfield_accordion',
       // Set the default field settings.
       'settings' => array(
         'answer_widget' => 'textarea',
@@ -284,6 +284,11 @@ function faqfield_field_formatter_settings_form($field, $instance, $view_mode, $
  */
 function faqfield_field_formatter_info() {
   return array(
+    // This formatter displays the FAQ content as definition list.
+    'faqfield_accordion' => array(
+      'label' => t('Accordion'),
+      'field types' => array('faqfield'),
+    ),
     // This formatter displays the FAQ content as anchors and text.
     'faqfield_anchor_list' => array(
       'label' => t('Anchor list and text'),
@@ -291,11 +296,6 @@ function faqfield_field_formatter_info() {
       'settings' => array(
         'anchor-list-type' => 'ul',
       ),
-    ),
-    // This formatter displays the FAQ content as definition list.
-    'faqfield_definition_list' => array(
-      'label' => t('Definition list'),
-      'field types' => array('faqfield'),
     ),
     // This formatter just displays the FAQ content as simple text.
     'faqfield_simple_text' => array(
@@ -315,22 +315,7 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
     return $element;
   }
   switch ($display['type']) {
-    // This themeable formatter displays the FAQ content as simple text.
-    case 'faqfield_simple_text':
-      foreach ($items as $delta => $item) {
-        // Decide whether to use the default format or the custom one.
-        $format = (!empty($item['answer_format']) ? $item['answer_format'] : $field['settings']['format']);
-        // Add them as page elements, they'll be rendered automatically later.
-        $element[$delta] = array(
-          '#theme' => 'faqfield_formatter',
-          // Filter values before passing them to the template.
-          '#question' => check_plain($item['question']),
-          '#answer' => check_markup($item['answer'], $format),
-          '#delta' => $delta,
-        );
-      }
-      break;
-    case 'faqfield_definition_list':
+    case 'faqfield_accordion':
       backdrop_add_js(
         backdrop_get_path('module', 'faqfield') . '/js/faqfield.accordion_dl.js',
         array(
@@ -353,6 +338,21 @@ function faqfield_field_formatter_view($entity_type, $entity, $field, $instance,
         $element[0]['#markup'] .= '<dd class="faqfield-answer">' . check_markup($item['answer'], $format) . '</dd>';
       }
       $element[0]['#markup'] .= '</dl>';
+      break;
+    // This themeable formatter displays the FAQ content as simple text.
+    case 'faqfield_simple_text':
+      foreach ($items as $delta => $item) {
+        // Decide whether to use the default format or the custom one.
+        $format = (!empty($item['answer_format']) ? $item['answer_format'] : $field['settings']['format']);
+        // Add them as page elements, they'll be rendered automatically later.
+        $element[$delta] = array(
+          '#theme' => 'faqfield_formatter',
+          // Filter values before passing them to the template.
+          '#question' => check_plain($item['question']),
+          '#answer' => check_markup($item['answer'], $format),
+          '#delta' => $delta,
+        );
+      }
       break;
     // This formatter displays the FAQ content as anchors and text.
     case 'faqfield_anchor_list':
