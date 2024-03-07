@@ -1,5 +1,6 @@
 name = FAQ Field
 description = Provides a field for frequently asked questions.
 backdrop = 1.x
+type = module
 
 scripts[] = js/faqfield.remove.js
