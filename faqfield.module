@@ -439,7 +439,7 @@ function faqfield_field_widget_form(&$form, &$form_state, $field, $instance, $la
     $element['answer'] = array(
         '#title' => check_plain($field['settings']['advanced']['answer_title']),
         '#type' => $field['settings']['answer_widget'],
-        '#default_value' => @$items[$delta]['answer'],
+        '#default_value' => @$items[$delta]['answer']['value'],
         '#delta' => $delta,
         '#weight' => 1,
         // We choose the source output format depending on the input type.
