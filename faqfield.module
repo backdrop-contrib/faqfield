@@ -468,7 +468,7 @@ function faqfield_field_widget_form_default_value_element($element, &$form_state
   // As we can set a default format from the field configuration page,
   // we want to save it even if question and answer are actually empty
   // but we have to make sure the submitted default value is saved
-  // separately to avoid the widget form beeing build twice (#1526448).
+  // separately to avoid the widget form being build twice (#1526448).
   if (isset($form_state['values'][$field['field_name']])) {
     // Save the default value in the field instance in our own way.
     $default_value = $form_state['values'][$field['field_name']][LANGUAGE_NONE][0];
@@ -479,7 +479,6 @@ function faqfield_field_widget_form_default_value_element($element, &$form_state
       $default_value['answer'] = $default_value['answer']['value'];
     }
     $form_state['values']['instance']['default_values'] = $default_value;
-    $form_state['values'][$field['field_name']] = NULL;
   }
 }
 
